@@ -231,7 +231,7 @@ def setup_output_directory(io_dict):
     except:
         pass
 
-    print 'Output Directory:  %s' %output_directory
+    print('Output Directory:  %s' %output_directory)
 
 
 def check_input_spectra(io_dict):
@@ -258,7 +258,7 @@ def check_input_spectra(io_dict):
     if len(dif_set) !=0:
         raise ValueError('Mismatch between Spectra and HJD core filenames %s' %dif_set)
 
-    print 'Checks Complete'
+    print('Checks Complete')
 
 
 def get_obs_spec_and_times(io_dict):
@@ -332,7 +332,10 @@ def run_cb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     cb['period@binary'].set_value(value = run_dictionary['period'])
     cb['sma@binary'].set_value(value = run_dictionary['sma'])
     cb['q@binary'].set_value(value = run_dictionary['q'])
-    cb['ntriangles'].set_value_all(value = 5000)
+    if phoebe_ver < 2.2:
+        cb['ntriangles'].set_value_all(value = 5000)
+    else:
+        cb['ntriangles'].set_value(value = 5000)
     cb['incl'].set_value(value = run_dictionary['inclination'])
 
     t = list(times)
@@ -341,7 +344,14 @@ def run_cb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     cb.add_dataset('rv', times=t, dataset='rv01')
     cb.add_dataset('mesh', times=t, dataset='mesh01')
     cb.add_dataset('orb', times=t, dataset='orb01')
-    cb['ld_func'].set_value_all(value = 'logarithmic')
+    if phoebe_ver < 2.2:
+        cb['ld_func'].set_value_all(value = 'logarithmic')
+    else:
+        cb['ld_mode'].set_value_all(value = 'manual')
+        cb['ld_func'].set_value_all(value = 'logarithmic')
+        cb['ld_mode_bol'].set_value_all(value = 'manual')
+        cb['ld_func_bol'].set_value_all(value = 'logarithmic')
+
     cb['atm'].set_value_all(value='blackbody')
     cb['include_times'] = 't0_ref@binary'
     cb.flip_constraint('t0_ref@binary', 't0_supconj')
@@ -370,7 +380,10 @@ def run_b_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     b['period@binary'].set_value(value = run_dictionary['period'])
     b['sma@binary'].set_value(value = run_dictionary['sma'])
     b['q@binary'].set_value(value = run_dictionary['q'])
-    b['ntriangles'].set_value_all(value = 5000)
+    if phoebe_ver < 2.2:
+        b['ntriangles'].set_value_all(value = 5000)
+    else:
+        b['ntriangles'].set_value(value = 5000)
     b['incl@binary'].set_value(value = run_dictionary['inclination'])
     b['syncpar@primary'].set_value(value = run_dictionary['async_primary'])
     b['syncpar@secondary'].set_value(value = run_dictionary['async_secondary'])
@@ -447,7 +460,7 @@ def update_output_directories(times, abund_param_values, io_dict, run_dictionary
     model_path = io_dict['output_directory'] + 'Model_' + str(run_dictionary['run_id']).zfill(4)
     os.mkdir(model_path)
     if abund_param_values['interpolate_abundances']:
-        print 'abundance interpolation is not supported yet.'
+        print('abundance interpolation is not supported yet.')
     he_abundances = [0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2]
     cno_abundances = [6.5, 6.5, 6.5, 6.5, 7.0, 7.0, 7.0, 7.0, 7.5, 7.5, 7.5, 7.5, 8.0, 8.0, 8.0, 8.0, 8.5, 8.5, 8.5, 8.5]
     for i in range(len(he_abundances)):
@@ -487,7 +500,7 @@ def assign_and_calc_abundance(mesh_vals, hjd, model_path, abund_param_values, li
     # wave, phots = calc_flux_bulk(ws, star_profs, wind_profs, mesh_vals)
     # for i in range(20):
     #     np.savetxt(model_path + '/He' + str(he_abundances[i]) + '_CNO' + str(cno_abundances[i]) + '/hjd' + str(hjd).ljust(13, '0') + '_' + line + '.txt', np.array([wave, phots[i]/phots[i][0]]).T)
-    print time.time() - start_time
+    print(time.time() - start_time)
 
 
 def assign_spectra(mesh_vals, line, lines_dic, io_dict):
@@ -739,7 +752,7 @@ def calc_flux(ws, ws_all, star_profs, wind_profs, mesh_vals):
 
 
 def spec_by_phase_cb(cb, line_list, abund_param_values, io_dict, run_dictionary, model_path):
-    times = cb['times@dataset@mesh'].value
+    times = cb['times@dataset@lc'].value
     interp = True
 
     combs, mode_combs = determine_tgr_combinations(cb, io_dict)
@@ -808,7 +821,7 @@ def spec_by_phase_cb(cb, line_list, abund_param_values, io_dict, run_dictionary,
 
 
 def spec_by_phase_b(b, line_list, abund_param_values, io_dict, run_dictionary, model_path):
-    times = b['times@dataset@mesh'].value
+    times = b['times@dataset@lc'].value
     interp = True
 
     combs, mode_combs = determine_tgr_combinations(b, io_dict)
@@ -861,7 +874,7 @@ def spec_by_phase_b(b, line_list, abund_param_values, io_dict, run_dictionary, m
 
 
 def spec_by_phase_s(s, line_list, abund_param_values, io_dict, run_dictionary, model_path):
-    times = s['times@dataset@mesh'].value
+    times = s['times@dataset@lc'].value
 
     combs, mode_combs = determine_tgr_combinations(s, io_dict)
     #print(combs)
@@ -880,7 +893,7 @@ def spec_by_phase_s(s, line_list, abund_param_values, io_dict, run_dictionary, m
         # rvs = vzs * -1.0
         if run_dictionary['rotation_rate'] == 0:
             rvs = np.zeros_like(rvs)
-            print 'zeroed'
+            # print('zeroed')
         rvs += run_dictionary['gamma']
         mus = s_t['mus'].get_value()
         viss = s_t['visibilities'].get_value()
@@ -904,7 +917,7 @@ def spec_by_phase_s(s, line_list, abund_param_values, io_dict, run_dictionary, m
 
 
 def determine_tgr_combinations(cb, io_dict):
-    times = cb['times@dataset@mesh'].value
+    times = cb['times@dataset@lc'].value
     teffs = []
     loggs = []
     rs = []
@@ -1059,7 +1072,7 @@ def PFGS_checks(io_dict, times, line_list):
         for abund in abunds:
             out_lines = glob.glob(abund + '/*')
             if len(out_lines) < (len(times) * len(line_list)):
-                print 'some models failed to run in %s' %abund
+                print('some models failed to run in %s' %abund)
 
 
 def calc_chi2(obs, exp, w = None, lb = None):
@@ -1531,12 +1544,12 @@ def calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictio
 
 
 def PFGS(times, abund_param_values, line_list, io_dict, obs_specs, run_dictionary):
-    print 'starting...' + str(run_dictionary['run_id'])
+    print('starting...' + str(run_dictionary['run_id']))
     model_path = update_output_directories(times, abund_param_values, io_dict, run_dictionary)
     if io_dict['object_type'] == 'contact_binary':
+        cb = run_cb_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
+        spec_by_phase_cb(cb, line_list, abund_param_values, io_dict, run_dictionary, model_path)
         try:
-            cb = run_cb_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
-            spec_by_phase_cb(cb, line_list, abund_param_values, io_dict, run_dictionary, model_path)
             if obs_specs == None:
                 chi_array = [0]
             else:
@@ -1605,7 +1618,7 @@ def main():
     # chi2 = run_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
 
 
-    print 'hello'
+    print('hello')
 
     if MPI:
         chi2 = pool.map(functools.partial(PFGS, times, abund_param_values, line_list, io_dict, obs_specs), run_dictionaries)
@@ -1617,7 +1630,7 @@ def main():
         chi_full_array = []
         for i in chi2:
             chi_full_array.extend(i)
-        print len(chi_full_array)
+        # print len(chi_full_array)
 
         if io_dict['object_type'] == 'contact_binary':
             np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.3f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.2f %0.2f %0.2f %0.2f %s', header = 'chi2 fillout_factor teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary he c n o run_id')
@@ -1629,6 +1642,9 @@ def main():
                 np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.2f %0.2f %s', header = 'chi2 teff vsini rotation_rate mass r inclination gamma t0 he c n o run_id')
             except:
                 np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.2f %0.2f %s', header = 'chi2 teff rotation_rate mass r inclination gamma t0 he c n o run_id')
+
+py_ver = sys.version_info[0]
+phoebe_ver = float(phoebe.__version__[:3])
 
 if __name__ == "__main__":
     main()
