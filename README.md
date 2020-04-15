@@ -6,12 +6,23 @@ SPAMMS stands for Spectroscopic PAtch Model for Massive Stars and is designed wi
 
 Installation
 ------------
+*   SPAMMS is written in python 2.7 but in a future release, we will support python 3.7 as well.
 
 *   Clone the git repository to create a local copy.
 
         $ git clone https://github.com/MichaelAbdul-Masih/SPAMMS.git
         
 *   SPAMMS relies heavily on PHOEBE 2 so you will need to download PHOEBE 2 as well.  Instructions for installation can be found at http://phoebe-project.org/
+
+*   Minimum package dependencies include:
+        
+        astropy 2.0.12
+        numpy 1.16.3
+        phoebe 2.1.15
+        schwimmbad 0.3.0
+        scipy 1.2.0
+        tqdm 4.31.1
+        
 
 Getting Started
 ---------------
