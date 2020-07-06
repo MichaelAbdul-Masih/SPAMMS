@@ -56,7 +56,7 @@ def read_cb_input_file(input_file):
 
 
     fit_params = ['fillout_factor', 'teff_primary', 'teff_secondary', 'period', 'sma', 'inclination', 'q', 't0', 'async_primary', 'async_secondary', 'gamma']
-    abundance_params = []
+    abundance_params = ['he_abundances', 'cno_abundances', 'lp_bins']
 
     fit_param_values = {}
     abund_param_values = {}
@@ -109,7 +109,7 @@ def read_b_input_file(input_file):
 
 
     fit_params = ['r_equiv_primary', 'r_equiv_secondary', 'teff_primary', 'teff_secondary', 'period', 'sma', 'inclination', 'q', 't0', 'async_primary', 'async_secondary', 'pitch_primary', 'pitch_secondary', 'yaw_primary', 'yaw_secondary', 'gamma']
-    abundance_params = []
+    abundance_params = ['he_abundances', 'cno_abundances', 'lp_bins']
 
     fit_param_values = {}
     abund_param_values = {}
@@ -163,7 +163,7 @@ def read_s_input_file(input_file):
 
     fit_params = ['teff', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
     fit_params_alt = ['teff', 'vsini', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
-    abundance_params = ['he_abun', 'c_abun', 'n_abun', 'o_abun']
+    abundance_params = ['he_abundances', 'cno_abundances', 'lp_bins']
 
     fit_param_values = {}
     abund_param_values = {}
@@ -461,8 +461,10 @@ def update_output_directories(times, abund_param_values, io_dict, run_dictionary
     os.mkdir(model_path)
     if abund_param_values['interpolate_abundances']:
         print('abundance interpolation is not supported yet.')
-    he_abundances = [0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2]
-    cno_abundances = [6.5, 6.5, 6.5, 6.5, 7.0, 7.0, 7.0, 7.0, 7.5, 7.5, 7.5, 7.5, 8.0, 8.0, 8.0, 8.0, 8.5, 8.5, 8.5, 8.5]
+    he_abundances = [i for j in abund_param_values['cno_abundances'] for i in abund_param_values['he_abundances']]
+    cno_abundances = [j for j in abund_param_values['cno_abundances'] for i in abund_param_values['he_abundances']]
+    # he_abundances = [0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2]
+    # cno_abundances = [6.5, 6.5, 6.5, 6.5, 7.0, 7.0, 7.0, 7.0, 7.5, 7.5, 7.5, 7.5, 8.0, 8.0, 8.0, 8.0, 8.5, 8.5, 8.5, 8.5]
     for i in range(len(he_abundances)):
         os.mkdir(model_path + '/He' + str(he_abundances[i]) + '_CNO' + str(cno_abundances[i]))
     return model_path
@@ -479,17 +481,20 @@ def calc_spec_by_phase(mesh_vals, hjd, model_path, lines, abund_param_values, li
 
 def assign_and_calc_abundance(mesh_vals, hjd, model_path, abund_param_values, lines_dic, io_dict, line):
     start_time = time.time()
-    he_abundances = [0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2]
-    cno_abundances = [6.5, 6.5, 6.5, 6.5, 7.0, 7.0, 7.0, 7.0, 7.5, 7.5, 7.5, 7.5, 8.0, 8.0, 8.0, 8.0, 8.5, 8.5, 8.5, 8.5]
-    ws, star_profs, wind_profs = assign_spectra_interp(mesh_vals, line, lines_dic, io_dict)
+    he_abundances = [i for j in abund_param_values['cno_abundances'] for i in abund_param_values['he_abundances']]
+    cno_abundances = [j for j in abund_param_values['cno_abundances'] for i in abund_param_values['he_abundances']]
+    # he_abundances = [0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2, 0.06, 0.1, 0.15, 0.2]
+    # cno_abundances = [6.5, 6.5, 6.5, 6.5, 7.0, 7.0, 7.0, 7.0, 7.5, 7.5, 7.5, 7.5, 8.0, 8.0, 8.0, 8.0, 8.5, 8.5, 8.5, 8.5]
+    ws, star_profs, wind_profs = assign_spectra_interp(mesh_vals, line, lines_dic, io_dict, abund_param_values)
     # if 'upper' in lines_dic.keys():
     #     ws, star_profs, wind_profs = assign_spectra_interp(mesh_vals, line, lines_dic)
     # else:
     #     ws, star_profs, wind_profs = assign_spectra(mesh_vals, line, lines_dic)
     waves = []
     phots = []
-    for i in range(len(ws[0])/161):
-        wavg_single, phot_avg_single = calc_flux_optimize(ws[:,161*i:161*(i+1)], ws, star_profs[:,161*i:161*(i+1)], wind_profs[:,161*i:161*(i+1)], mesh_vals)
+    lp_bins = abund_param_values['lp_bins']
+    for i in range(len(ws[0])/lp_bins):
+        wavg_single, phot_avg_single = calc_flux_optimize(ws[:,lp_bins*i:lp_bins*(i+1)], ws, star_profs[:,lp_bins*i:lp_bins*(i+1)], wind_profs[:,lp_bins*i:lp_bins*(i+1)], mesh_vals)
         waves.append(wavg_single)
         phots.append(phot_avg_single/phot_avg_single[-1])
         np.savetxt(model_path + '/He' + str(he_abundances[i]) + '_CNO' + str(cno_abundances[i]) + '/hjd' + str(hjd).ljust(13, '0') + '_' + line + '.txt', np.array([wavg_single, phot_avg_single/phot_avg_single[-1]]).T)
@@ -530,7 +535,7 @@ def assign_spectra(mesh_vals, line, lines_dic, io_dict):
     return np.array(ws), np.array(star_profs), np.array(wind_profs)
 
 
-def assign_spectra_interp(mesh_vals, line, lines_dic, io_dict):
+def assign_spectra_interp(mesh_vals, line, lines_dic, io_dict, abund_param_values):
     ts = mesh_vals['teffs']
     tls = np.floor(mesh_vals['teffs'] / 1000.0) * 1000.0
     tus = np.ceil(mesh_vals['teffs'] / 1000.0) * 1000.0
@@ -560,8 +565,10 @@ def assign_spectra_interp(mesh_vals, line, lines_dic, io_dict):
         star_high_profs.append(stu)
         wind_high_profs.append(wiu)
 
-    w1s = np.array([w1s]* 3220).T
-    w2s = np.array([w2s]* 3220).T
+    n_tot_bins = len(abund_param_values['he_abundances']) * len(abund_param_values['cno_abundances']) * abund_param_values['lp_bins']
+
+    w1s = np.array([w1s]* n_tot_bins).T
+    w2s = np.array([w2s]* n_tot_bins).T
     #When you fall directly on a grid temperature, w1==w2==0.  check for this with w3
     w3s = w1s + w2s == 0
     star_profs = np.array(star_low_profs) * w1s + np.array(star_high_profs) * w2s + np.array(star_high_profs) * w3s
@@ -610,58 +617,6 @@ def lookup_line_profs_from_dic(t, g, r, m, v, line, lines_dic):
     star_prof = lower + rise*run
     wind_prof = lowerw + risew*runw
     return w, star_prof, wind_prof
-
-
-def calc_flux_bulk(ws_all, star_profs, wind_profs, mesh_vals):
-    viss = mesh_vals['viss']
-    areas = mesh_vals['areas']
-    mus = mesh_vals['mus']
-    rs_sol = mesh_vals['rs_sol']
-
-    factor_phot = viss * mus * areas / rs_sol**2
-    factor_wind = (mus > 0) * mus * areas / (rs_sol)**2 * 120**2
-
-    star_profs *= np.array([factor_phot]*len(star_profs[0])).T
-    wind_profs *= np.array([factor_wind]*len(wind_profs[0])).T
-
-    star_profs += wind_profs
-
-    w_min = min(ws_all[:,0])
-    w_min = math.floor(w_min*10)/10
-    w_max = max(ws_all[:,-1])
-    w_max = math.ceil(w_max*10)/10
-
-    wave = np.arange(w_min, w_max, 0.1)
-
-    ws_all_correction = np.array([[i/161 * 1000 for i in range(3220)]]*len(ws_all))
-    ws_all = np.array(ws_all) + ws_all_correction
-    ws_all = np.insert(ws_all, 0, [0] * len(ws_all), axis=1)
-    ws_all = np.insert(ws_all, -1, [99999] * len(ws_all), axis=1)
-
-    # ws_all = np.insert(np.insert(ws_all, 0, [0]*len(ws_all), axis=1), len(ws_all)+1, [99999]*len(ws_all), axis=1)
-
-    star_profs = np.insert(star_profs, 0, star_profs.T[0], axis=1)
-    star_profs = np.insert(star_profs, -1, star_profs.T[-1], axis=1)
-
-    # wind_profs = np.insert(wind_profs, 0, wind_profs.T[0], axis=1)
-    # wind_profs = np.insert(wind_profs, -1, wind_profs.T[-1], axis=1)
-    #
-    wave_all_correction = np.array([i/len(wave) * 1000 for i in range(len(wave)*20)])
-    wave_all = np.array(list(wave)*20) + wave_all_correction
-
-    I_star = []
-    I_wind = []
-    for i in range(len(ws_all)):
-        I_star.append(np.interp(wave_all, ws_all[i], star_profs[i]))
-        # I_wind.append(np.interp(wave_all, ws_all[i], wind_profs[i]))
-
-    # flux_phot = np.sum(I_star * np.array([factor_phot]*len(wave)).T, axis=0)
-    # flux_wind = np.sum(I_wind * np.array([factor_wind]*len(wave)).T, axis=0)
-    # flux = flux_wind + flux_phot
-    flux = []
-    for i in range(20):
-        flux.append(np.sum(np.array(I_star)[:,len(wave)*i:len(wave)*(i+1)], axis=0))
-    return wave, flux
 
 
 def calc_flux_optimize(ws, ws_all, star_profs, wind_profs, mesh_vals):
@@ -763,7 +718,7 @@ def spec_by_phase_cb(cb, line_list, abund_param_values, io_dict, run_dictionary,
         print('WARNING: input grid entries missing.')
         print(missing_combs)
     #print combs
-    lines_dic = interp_line_dictionary_structure_new(combs, line_list, io_dict, mode_combs)
+    lines_dic = interp_line_dictionary_structure_new(combs, line_list, io_dict, mode_combs, abund_param_values)
     # lines_dic = line_dictionary_structure(combs, line_list, io_dict)
     # if interp:
     #     lines_dic = interp_line_dictionary_structure(lines_dic)
@@ -825,7 +780,7 @@ def spec_by_phase_b(b, line_list, abund_param_values, io_dict, run_dictionary, m
     interp = True
 
     combs, mode_combs = determine_tgr_combinations(b, io_dict)
-    lines_dic = interp_line_dictionary_structure_new(combs, line_list, io_dict, mode_combs)
+    lines_dic = interp_line_dictionary_structure_new(combs, line_list, io_dict, mode_combs, abund_param_values)
     # lines_dic = line_dictionary_structure(combs, line_list, io_dict)
     # if interp:
     #     lines_dic = interp_line_dictionary_structure(lines_dic)
@@ -878,7 +833,7 @@ def spec_by_phase_s(s, line_list, abund_param_values, io_dict, run_dictionary, m
 
     combs, mode_combs = determine_tgr_combinations(s, io_dict)
     #print(combs)
-    lines_dic = interp_line_dictionary_structure_new(combs, line_list, io_dict, mode_combs)
+    lines_dic = interp_line_dictionary_structure_new(combs, line_list, io_dict, mode_combs, abund_param_values)
 
     for hjd in times:
         s_t = s['%09.6f'%hjd]
@@ -979,8 +934,10 @@ def line_dictionary_structure(combinations, lines, io_dict):
     return lines_dic
 
 
-def interp_line_dictionary_structure_new(combinations, lines, io_dict, mode_combs):
+def interp_line_dictionary_structure_new(combinations, lines, io_dict, mode_combs, abund_param_values):
     lines_dic = {}
+    lp_bins = abund_param_values['lp_bins']
+    n_abundance_combinations = len(abund_param_values['he_abundances']) * len(abund_param_values['cno_abundances'])
     for line in lines:
         wl = {}
         wi = {}
@@ -994,17 +951,17 @@ def interp_line_dictionary_structure_new(combinations, lines, io_dict, mode_comb
             phot = np.load(filename + 'phot_101.npy')
             winds = []
             phots = []
-            for j in range(20):
-                w_low = w_ref[161*j:161*(j+1)]
+            for j in range(n_abundance_combinations):
+                w_low = w_ref[lp_bins*j:lp_bins*(j+1)]
 
-                w_high = w[161*j:161*(j+1)]
+                w_high = w[lp_bins*j:lp_bins*(j+1)]
                 w_high = np.insert(np.insert(w_high, 0, 0), len(w_high)+1, 99999)
 
-                wind_high = wind[:,161*j:161*(j+1)]
+                wind_high = wind[:,lp_bins*j:lp_bins*(j+1)]
                 wind_high = np.insert(wind_high, 0, wind_high.T[0], axis=1)
                 wind_high = np.insert(wind_high, -1, wind_high.T[-1], axis=1)
 
-                phot_high = phot[:,161*j:161*(j+1)]
+                phot_high = phot[:,lp_bins*j:lp_bins*(j+1)]
                 phot_high = np.insert(phot_high, 0, phot_high.T[0], axis=1)
                 phot_high = np.insert(phot_high, -1, phot_high.T[-1], axis=1)
 
@@ -1020,49 +977,6 @@ def interp_line_dictionary_structure_new(combinations, lines, io_dict, mode_comb
         line_dic = {'wavelength': wl, 'wind':wi, 'phot':ph}
         lines_dic[line] = line_dic
     return lines_dic
-
-
-def interp_line_dictionary_structure(lines_dic):
-    lines_dic_upper = {}
-    lines = lines_dic.keys()
-    wavelength_correction = np.array([i/161 * 1000 for i in range(3220)])
-    for line in lines:
-        combinations = lines_dic[line]['phot'].keys()
-        wl = {}
-        wi = {}
-        ph = {}
-        for i in trange(len(combinations), desc='interp_dict', leave=False):
-            low_combination = 'T' + str(int(combinations[i][1:6])-1000) + combinations[i][6:]
-            if low_combination in combinations:
-                winds = []
-                phots = []
-                for j in range(20):
-                    w_low = lines_dic[line]['wavelength'][low_combination][161*j:161*(j+1)]
-
-                    w_high = lines_dic[line]['wavelength'][combinations[i]][161*j:161*(j+1)]
-                    w_high = np.insert(np.insert(w_high, 0, 0), len(w_high)+1, 99999)
-
-                    wind_high = lines_dic[line]['wind'][combinations[i]][:,161*j:161*(j+1)]
-                    wind_high = np.insert(wind_high, 0, wind_high.T[0], axis=1)
-                    wind_high = np.insert(wind_high, -1, wind_high.T[-1], axis=1)
-
-                    phot_high = lines_dic[line]['phot'][combinations[i]][:,161*j:161*(j+1)]
-                    phot_high = np.insert(phot_high, 0, phot_high.T[0], axis=1)
-                    phot_high = np.insert(phot_high, -1, phot_high.T[-1], axis=1)
-
-                    wind = [np.interp(w_low, w_high, wind_high[k]) for k in range(len(wind_high))]
-                    phot = [np.interp(w_low, w_high, phot_high[k]) for k in range(len(phot_high))]
-
-                    winds.extend(np.array(wind).T)
-                    phots.extend(np.array(phot).T)
-
-                wl[combinations[i]] = lines_dic[line]['wavelength'][low_combination]
-                wi[combinations[i]] = np.array(winds).T
-                ph[combinations[i]] = np.array(phots).T
-        line_dic = {'wavelength': wl, 'wind':wi, 'phot':ph}
-        lines_dic_upper[line] = line_dic
-    lines_dic_master = {'lower': lines_dic, 'upper': lines_dic_upper}
-    return lines_dic_master
 
 
 def PFGS_checks(io_dict, times, line_list):

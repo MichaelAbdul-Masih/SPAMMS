@@ -17,4 +17,8 @@ async_primary =       1.0
 async_secondary =     1.0
 gamma =               262.8
 
+he_abundances =       [0.06, 0.08, 0.1, 0.125, 0.15, 0.175, 0.2]
+cno_abundances =      [6.5, 6.75, 7.0, 7.25, 7.5, 7.75, 8.0, 8.25, 8.5]
+lp_bins =             161
+
 selected_line_list = ['HEI4471', 'HEII4541']
