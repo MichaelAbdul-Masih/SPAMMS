@@ -6,6 +6,7 @@ Input_Spectra/*
 !Outputs/
 Outputs/*
 !Outputs/.gitkeep
+!Outputs/plot_chi2_minimization.py
 !Grids/
 Grids/*
 !Grids/.gitkeep
