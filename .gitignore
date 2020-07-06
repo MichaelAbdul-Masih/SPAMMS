@@ -2,6 +2,7 @@
 !Input_Spectra/
 Input_Spectra/*
 !Input_Spectra/VFTS_352
+!Input_Spectra/.gitkeep
 !Outputs/
 Outputs/*
 !Outputs/.gitkeep
