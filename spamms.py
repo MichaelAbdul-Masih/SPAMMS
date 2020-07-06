@@ -56,7 +56,7 @@ def read_cb_input_file(input_file):
 
 
     fit_params = ['fillout_factor', 'teff_primary', 'teff_secondary', 'period', 'sma', 'inclination', 'q', 't0', 'async_primary', 'async_secondary', 'gamma']
-    abundance_params = ['he_abundances', 'cno_abundances', 'lp_bins']
+    abundance_params = ['he_abundances', 'cno_abundances']
 
     fit_param_values = {}
     abund_param_values = {}
@@ -71,9 +71,16 @@ def read_cb_input_file(input_file):
     for param in fit_params:
         arg = lines[[i for i in range(len(lines)) if lines[i].startswith(param)][0]].split('=')[1].strip()
         fit_param_values[param] = arg_parse(arg)
+
+    abund_param_values['he_abundances'] = [0.06, 0.1, 0.15, 0.2]
+    abund_param_values['cno_abundances'] = [6.5, 7.0, 7.5, 8.0, 8.5]
+    abund_param_values['lp_bins'] = 161
     for param in abundance_params:
         arg = lines[[i for i in range(len(lines)) if lines[i].startswith(param)][0]].split('=')[1].strip()
         abund_param_values[param] = arg_parse(arg)
+
+    if type(abund_param_values['lp_bins']) is list:
+        abund_param_values['lp_bins'] = int(abund_param_values['lp_bins'][0])
 
     abund_param_values['interpolate_abundances'] = False
     # interp_arg = lines[[i for i in range(len(lines)) if lines[i].startswith('interpolate_abundances')][0]].split('=')[1].strip()
@@ -109,7 +116,7 @@ def read_b_input_file(input_file):
 
 
     fit_params = ['r_equiv_primary', 'r_equiv_secondary', 'teff_primary', 'teff_secondary', 'period', 'sma', 'inclination', 'q', 't0', 'async_primary', 'async_secondary', 'pitch_primary', 'pitch_secondary', 'yaw_primary', 'yaw_secondary', 'gamma']
-    abundance_params = ['he_abundances', 'cno_abundances', 'lp_bins']
+    abundance_params = ['he_abundances', 'cno_abundances']
 
     fit_param_values = {}
     abund_param_values = {}
@@ -124,9 +131,16 @@ def read_b_input_file(input_file):
     for param in fit_params:
         arg = lines[[i for i in range(len(lines)) if lines[i].startswith(param)][0]].split('=')[1].strip()
         fit_param_values[param] = arg_parse(arg)
+
+    abund_param_values['he_abundances'] = [0.06, 0.1, 0.15, 0.2]
+    abund_param_values['cno_abundances'] = [6.5, 7.0, 7.5, 8.0, 8.5]
+    abund_param_values['lp_bins'] = 161
     for param in abundance_params:
         arg = lines[[i for i in range(len(lines)) if lines[i].startswith(param)][0]].split('=')[1].strip()
         abund_param_values[param] = arg_parse(arg)
+
+    if type(abund_param_values['lp_bins']) is list:
+        abund_param_values['lp_bins'] = int(abund_param_values['lp_bins'][0])
 
     abund_param_values['interpolate_abundances'] = False
     # interp_arg = lines[[i for i in range(len(lines)) if lines[i].startswith('interpolate_abundances')][0]].split('=')[1].strip()
@@ -163,7 +177,7 @@ def read_s_input_file(input_file):
 
     fit_params = ['teff', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
     fit_params_alt = ['teff', 'vsini', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
-    abundance_params = ['he_abundances', 'cno_abundances', 'lp_bins']
+    abundance_params = ['he_abundances', 'cno_abundances']
 
     fit_param_values = {}
     abund_param_values = {}
@@ -185,6 +199,16 @@ def read_s_input_file(input_file):
     for param in abundance_params:
         arg = lines[[i for i in range(len(lines)) if lines[i].startswith(param)][0]].split('=')[1].strip()
         abund_param_values[param] = arg_parse(arg)
+
+    abund_param_values['he_abundances'] = [0.06, 0.1, 0.15, 0.2]
+    abund_param_values['cno_abundances'] = [6.5, 7.0, 7.5, 8.0, 8.5]
+    abund_param_values['lp_bins'] = 161
+    for param in abundance_params:
+        arg = lines[[i for i in range(len(lines)) if lines[i].startswith(param)][0]].split('=')[1].strip()
+        abund_param_values[param] = arg_parse(arg)
+
+    if type(abund_param_values['lp_bins']) is list:
+        abund_param_values['lp_bins'] = int(abund_param_values['lp_bins'][0])
 
     abund_param_values['interpolate_abundances'] = False
     # interp_arg = lines[[i for i in range(len(lines)) if lines[i].startswith('interpolate_abundances')][0]].split('=')[1].strip()
