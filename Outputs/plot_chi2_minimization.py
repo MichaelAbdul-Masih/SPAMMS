@@ -89,9 +89,9 @@ for param in fit_params:
         fit_param_interp[param] = scInterp.interp1d(fit_params_unique[param], fit_params_chi[param], kind='cubic')
     except:
         fit_param_interp[param] = scInterp.interp1d(fit_params_unique[param], fit_params_chi[param], kind='quadratic')
-    fit_param_range[param] = np.linspace(np.min(fit_params_unique[param]), np.max(fit_params_unique[param]), 50.)
+    fit_param_range[param] = np.linspace(np.min(fit_params_unique[param]), np.max(fit_params_unique[param]), 500.)
 
-    temp_pr = np.linspace(np.min(fit_params_unique[param]), np.max(fit_params_unique[param]), 200.)
+    temp_pr = np.linspace(np.min(fit_params_unique[param]), np.max(fit_params_unique[param]), 2000.)
     temp_chi = fit_param_interp[param](temp_pr)
     ind_min = np.argmin(temp_chi)
     fit_param_min[param] = temp_pr[ind_min]
