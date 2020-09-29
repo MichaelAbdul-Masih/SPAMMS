@@ -595,7 +595,7 @@ def assign_spectra_interp(mesh_vals, line, lines_dic, io_dict, abund_param_value
     w2s = np.array([w2s]* n_tot_bins).T
     #When you fall directly on a grid temperature, w1==w2==0.  check for this with w3
     w3s = w1s + w2s == 0
-    print(wls.shape, w2s.shape, w3s.shape, np.array(star_low_profs).shape, np.array(star_high_profs).shape)
+    
     star_profs = np.array(star_low_profs) * w1s + np.array(star_high_profs) * w2s + np.array(star_high_profs) * w3s
     wind_profs = np.array(wind_low_profs) * w1s + np.array(wind_high_profs) * w2s + np.array(wind_high_profs) * w3s
     elapsed_time = time.time() - start_time
