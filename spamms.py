@@ -595,7 +595,7 @@ def assign_spectra_interp(mesh_vals, line, lines_dic, io_dict, abund_param_value
     w2s = np.array([w2s]* n_tot_bins).T
     #When you fall directly on a grid temperature, w1==w2==0.  check for this with w3
     w3s = w1s + w2s == 0
-    
+
     star_profs = np.array(star_low_profs) * w1s + np.array(star_high_profs) * w2s + np.array(star_high_profs) * w3s
     wind_profs = np.array(wind_low_profs) * w1s + np.array(wind_high_profs) * w2s + np.array(wind_high_profs) * w3s
     elapsed_time = time.time() - start_time
@@ -1572,15 +1572,15 @@ def main():
         # print len(chi_full_array)
 
         if io_dict['object_type'] == 'contact_binary':
-            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.3f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.2f %0.2f %0.2f %0.2f %s', header = 'chi2 fillout_factor teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary he c n o run_id')
+            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.3f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.3f %0.2f %0.2f %0.2f %s', header = 'chi2 fillout_factor teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary he c n o run_id')
         if io_dict['object_type'] == 'binary':
             [chi2, r_equiv_primary, r_equiv_secondary, teff_primary, teff_secondary, period, sma, q, inclination, gamma, t0, async_primary, async_secondary, pitch_primary, pitch_secondary, yaw_primary, yaw_secondary, he, cno, run_id]
             np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.2f %0.2f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.1f %0.1f %0.1f %0.1f %0.2f %0.2f %s', header = 'chi2 r_equiv_primary r_equiv_secondary teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary pitch_primary pitch_secondary yaw_primary yaw_secondary he cno run_id')
         elif io_dict['object_type'] == 'single':
             try:
-                np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.2f %0.2f %s', header = 'chi2 teff vsini rotation_rate mass r inclination gamma t0 he c n o run_id')
+                np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s', header = 'chi2 teff vsini rotation_rate mass r inclination gamma t0 he c n o run_id')
             except:
-                np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.2f %0.2f %s', header = 'chi2 teff rotation_rate mass r inclination gamma t0 he c n o run_id')
+                np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s', header = 'chi2 teff rotation_rate mass r inclination gamma t0 he c n o run_id')
 
 py_ver = sys.version_info[0]
 phoebe_ver = float(phoebe.__version__[:3])
