@@ -176,7 +176,7 @@ def read_s_input_file(input_file):
 
 
     fit_params = ['teff', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
-    fit_params_alt = ['teff', 'vsini', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
+    fit_params_alt = ['teff', 'vsini', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma', 'deformation']
     abundance_params = ['he_abundances', 'cno_abundances']
 
     fit_param_values = {}
@@ -196,6 +196,8 @@ def read_s_input_file(input_file):
         except:
             if param == 'vsini':
                 fit_param_values[param] = [-1.0]
+            elif param == 'deformation':
+                fit_param_values[param] = ['rotstar']
     for param in abundance_params:
         arg = lines[[i for i in range(len(lines)) if lines[i].startswith(param)][0]].split('=')[1].strip()
         abund_param_values[param] = arg_parse(arg)
@@ -314,7 +316,7 @@ def get_obs_spec_and_times(io_dict):
 def create_runs_and_ids(fit_param_values):
     keys = []
     values = []
-    for key, value in fit_param_values.iteritems():
+    for key, value in fit_param_values.items():
         keys.append(key)
         values.append(value)
 
@@ -422,7 +424,14 @@ def run_b_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     b.add_dataset('rv', times=t, dataset='rv01')
     b.add_dataset('mesh', times=t, dataset='mesh01')
     b.add_dataset('orb', times=t, dataset='orb01')
-    b['ld_func'].set_value_all(value = 'logarithmic')
+    if phoebe_ver < 2.2:
+        b['ld_func'].set_value_all(value = 'logarithmic')
+    else:
+        b['ld_mode'].set_value_all(value = 'manual')
+        b['ld_func'].set_value_all(value = 'logarithmic')
+        b['ld_mode_bol'].set_value_all(value = 'manual')
+        b['ld_func_bol'].set_value_all(value = 'logarithmic')
+
     b['atm'].set_value_all(value='blackbody')
     b['include_times'] = 't0_ref@binary'
     b.flip_constraint('t0_ref@binary', 't0_supconj')
@@ -467,7 +476,14 @@ def run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     s.add_dataset('rv', times=t, dataset='rv01')
     s.add_dataset('mesh', times=t, dataset='mesh01')
     s.add_dataset('orb', times=t, dataset='orb01')
-    s['ld_func'].set_value_all(value = 'logarithmic')
+    if phoebe_ver < 2.2:
+        s['ld_func'].set_value_all(value = 'logarithmic')
+    else:
+        s['ld_mode'].set_value_all(value = 'manual')
+        s['ld_func'].set_value_all(value = 'logarithmic')
+        s['ld_mode_bol'].set_value(value = 'manual')
+        s['ld_func_bol'].set_value(value = 'logarithmic')
+
     s['atm'].set_value(value='blackbody')
     s['include_times'] = 't0@system'
     s['t0@system'].set_value(value = run_dictionary['t0'])
@@ -478,6 +494,66 @@ def run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     execution_time = time.time() - start_time_prog_1
     # print execution_time
     return s
+
+
+def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
+    t = io_dict['times']
+    start_time_prog_1 = time.time()
+    logger = phoebe.logger(clevel='ERROR')
+
+    b = phoebe.default_binary()
+
+    b['teff@primary'].set_value(value = run_dictionary['teff'])
+    b['gravb_bol'].set_value_all(value=1.0)
+    b['irrad_frac_refl_bol'].set_value_all(value=1.0)
+    b.flip_constraint('mass@primary', 'sma@binary')
+    b.flip_constraint('mass@secondary', 'q@binary')
+    b['mass@component@primary'].set_value(value = run_dictionary['mass'])
+    b['requiv@primary'].set_value(value = run_dictionary['requiv'])
+
+    if run_dictionary['rotation_rate'] == 0:
+        s['distortion_method'].set_value('sphere')
+        if run_dictionary['rotation_rate'] == -1:
+            period = rotation_rate_to_period(run_dictionary['vsini'] / (np.sin(run_dictionary['inclination'] * np.pi/180.)), run_dictionary['requiv'])
+        else:
+            period = rotation_rate_to_period(run_dictionary['rotation_rate'], run_dictionary['requiv'])
+
+    b['period@binary'].set_value(value = 999999)
+    if run_dictionary['inclination'] == -1:
+        b['incl@binary'].set_value(value = np.arcsin(run_dictionary['vsini'] / run_dictionary['rotation_rate']) * 180./np.pi)
+    else:
+        b['incl@binary'].set_value(value = run_dictionary['inclination'])
+
+    if phoebe_ver < 2.2:
+        b['ntriangles'].set_value_all(value = 5000)
+    else:
+        b['ntriangles'].set_value(value = 5000)
+
+    t = list(times)
+
+    b.add_dataset('lc', times=t, dataset='lc01')
+    b.add_dataset('rv', times=t, dataset='rv01')
+    b.add_dataset('mesh', times=t, dataset='mesh01')
+    b.add_dataset('orb', times=t, dataset='orb01')
+    if phoebe_ver < 2.2:
+        b['ld_func'].set_value_all(value = 'logarithmic')
+    else:
+        b['ld_mode'].set_value_all(value = 'manual')
+        b['ld_func'].set_value_all(value = 'logarithmic')
+        b['ld_mode_bol'].set_value(value = 'manual')
+        b['ld_func_bol'].set_value(value = 'logarithmic')
+
+    b['atm'].set_value_all(value='blackbody')
+    b['include_times'] = 't0_ref@binary'
+    b.flip_constraint('t0_ref@binary', 't0_supconj')
+    b['t0_ref@binary@component'].set_value(value = run_dictionary['t0'])
+
+    b['columns'] = ['*@lc01', '*@rv01', 'us', 'vs', 'ws', 'vus', 'vvs', 'vws', 'loggs', 'teffs', 'mus', 'visibilities', 'rs', 'areas']
+    b.run_compute()
+
+    execution_time = time.time() - start_time_prog_1
+    # print execution_time
+    return b
 
 
 def update_output_directories(times, abund_param_values, io_dict, run_dictionary):
@@ -884,6 +960,48 @@ def spec_by_phase_s(s, line_list, abund_param_values, io_dict, run_dictionary, m
         ldints = s_t['ldint@lc01'].get_value()
 
         rs = s_t['rs'].get_value()
+
+        rs_sol = rs * 695700000         # meters
+
+        start_time = time.time()
+
+        mesh_vals = {'teffs':teffs, 'loggs':loggs, 'rs':rs, 'mus':mus, 'rvs':rvs, 'viss':viss, 'abs_intens':abs_intens, 'areas':areas, 'ldints':ldints, 'rs_sol':rs_sol}
+
+        calc_spec_by_phase(mesh_vals, hjd, model_path, line_list, abund_param_values, lines_dic, io_dict)
+        # print time.time() - start_time
+
+
+def spec_by_phase_sb(s, line_list, abund_param_values, io_dict, run_dictionary, model_path):
+    times = s['times@dataset@lc'].value
+
+    combs, mode_combs = determine_tgr_combinations(s, io_dict)
+    #print(combs)
+    lines_dic = interp_line_dictionary_structure_new(combs, line_list, io_dict, mode_combs, abund_param_values)
+
+    for hjd in times:
+        s_t = s['%09.6f'%hjd]
+        teffs = s_t['teffs@primary'].get_value()
+        loggs = s_t['loggs@primary'].get_value()
+        xs = s_t['us@primary'].get_value()
+        ys = s_t['vs@primary'].get_value()
+        zs = s_t['ws@primary'].get_value()
+        rvs = s_t['rvs@primary@mesh'].get_value()
+
+        # vzs = s_t['vws'].get_value(unit=u.km/u.s)
+        # rvs = vzs * -1.0
+        if run_dictionary['rotation_rate'] == 0:
+            rvs = np.zeros_like(rvs)
+            # print('zeroed')
+        rvs += run_dictionary['gamma']
+        mus = s_t['mus@primary'].get_value()
+        viss = s_t['visibilities@primary'].get_value()
+        areas = s_t['areas@primary'].get_value(unit=u.m**2)
+
+        abs_intens = s_t['abs_intensities@primary@lc01'].get_value()
+
+        ldints = s_t['ldint@primary@lc01'].get_value()
+
+        rs = s_t['rs@primary'].get_value()
 
         rs_sol = rs * 695700000         # meters
 
@@ -1507,8 +1625,12 @@ def PFGS(times, abund_param_values, line_list, io_dict, obs_specs, run_dictionar
             chi_array = [[9999, run_dictionary['r_equiv_primary'], run_dictionary['r_equiv_secondary'], run_dictionary['teff_primary'], run_dictionary['teff_secondary'], run_dictionary['period'], run_dictionary['sma'], run_dictionary['q'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], run_dictionary['async_primary'], run_dictionary['async_secondary'], run_dictionary['pitch_primary'], run_dictionary['pitch_secondary'], run_dictionary['yaw_primary'], run_dictionary['yaw_secondary'], -1, -1, -1, -1, run_dictionary['run_id']]]
     elif io_dict['object_type'] == 'single':
         try:
-            s = run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
-            spec_by_phase_s(s, line_list, abund_param_values, io_dict, run_dictionary, model_path)
+            if run_dictionary['distortion'] == 'rotstar':
+                s = run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
+                spec_by_phase_s(s, line_list, abund_param_values, io_dict, run_dictionary, model_path)
+            elif run_dictionary['distortion'] = 'roche':
+                s = run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
+                spec_by_phase_sb(s, line_list, abund_param_values, io_dict, run_dictionary, model_path)
             if obs_specs == None:
                 chi_array = [0]
             else:
