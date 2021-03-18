@@ -174,9 +174,8 @@ def read_s_input_file(input_file):
     path_to_grid = lines[path_to_grid_ind].split('=')[1].strip()
     if not path_to_grid.endswith('/'): path_to_grid += '/'
 
-
     fit_params = ['teff', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
-    fit_params_alt = ['teff', 'vsini', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma', 'deformation']
+    fit_params_alt = ['teff', 'vsini', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
     abundance_params = ['he_abundances', 'cno_abundances']
 
     fit_param_values = {}
@@ -189,6 +188,15 @@ def read_s_input_file(input_file):
     except:
         pass
 
+    try:
+        dist_ind = [i for i in range(len(lines)) if lines[i].startswith('distortion')][0]
+        dist = lines[dist_ind].split('=')[1].strip()
+        if dist not in ['rotstar', 'roche']:
+            dist = 'rotstar'
+    except:
+        dist = 'rotstar'
+    fit_param_values['distortion'] = dist
+
     for param in fit_params_alt:
         try:
             arg = lines[[i for i in range(len(lines)) if lines[i].startswith(param)][0]].split('=')[1].strip()
@@ -196,8 +204,6 @@ def read_s_input_file(input_file):
         except:
             if param == 'vsini':
                 fit_param_values[param] = [-1.0]
-            elif param == 'deformation':
-                fit_param_values[param] = ['rotstar']
     for param in abundance_params:
         arg = lines[[i for i in range(len(lines)) if lines[i].startswith(param)][0]].split('=')[1].strip()
         abund_param_values[param] = arg_parse(arg)
