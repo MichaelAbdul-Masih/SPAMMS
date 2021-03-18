@@ -411,10 +411,9 @@ def run_b_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     b['period@binary'].set_value(value = run_dictionary['period'])
     b['sma@binary'].set_value(value = run_dictionary['sma'])
     b['q@binary'].set_value(value = run_dictionary['q'])
-    if phoebe_ver < 2.2:
-        b['ntriangles'].set_value_all(value = 5000)
-    else:
-        b['ntriangles'].set_value(value = 5000)
+
+    b['ntriangles'].set_value_all(value = 5000)
+
     b['incl@binary'].set_value(value = run_dictionary['inclination'])
     b['syncpar@primary'].set_value(value = run_dictionary['async_primary'])
     b['syncpar@secondary'].set_value(value = run_dictionary['async_secondary'])
@@ -529,10 +528,7 @@ def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     else:
         b['incl@binary'].set_value(value = run_dictionary['inclination'])
 
-    if phoebe_ver < 2.2:
-        b['ntriangles'].set_value_all(value = 5000)
-    else:
-        b['ntriangles'].set_value(value = 5000)
+    b['ntriangles'].set_value_all(value = 5000)
 
     t = list(times)
 
