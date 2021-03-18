@@ -174,20 +174,6 @@ def read_s_input_file(input_file):
     path_to_grid = lines[path_to_grid_ind].split('=')[1].strip()
     if not path_to_grid.endswith('/'): path_to_grid += '/'
 
-    fit_params = ['teff', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
-    fit_params_alt = ['teff', 'vsini', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
-    abundance_params = ['he_abundances', 'cno_abundances']
-
-    fit_param_values = {}
-    abund_param_values = {}
-    io_dict = {'object_type':object_type, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file}
-    try:
-        times_ind = [i for i in range(len(lines)) if lines[i].startswith('times')][0]
-        times = lines[times_ind].split('=')[1].strip()
-        io_dict['times'] = arg_parse(times)
-    except:
-        pass
-
     try:
         dist_ind = [i for i in range(len(lines)) if lines[i].startswith('distortion')][0]
         dist = lines[dist_ind].split('=')[1].strip()
@@ -195,7 +181,20 @@ def read_s_input_file(input_file):
             dist = 'rotstar'
     except:
         dist = 'rotstar'
-    fit_param_values['distortion'] = dist
+
+    fit_params = ['teff', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
+    fit_params_alt = ['teff', 'vsini', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
+    abundance_params = ['he_abundances', 'cno_abundances']
+
+    fit_param_values = {}
+    abund_param_values = {}
+    io_dict = {'object_type':object_type, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'distortion':dist}
+    try:
+        times_ind = [i for i in range(len(lines)) if lines[i].startswith('times')][0]
+        times = lines[times_ind].split('=')[1].strip()
+        io_dict['times'] = arg_parse(times)
+    except:
+        pass
 
     for param in fit_params_alt:
         try:
@@ -1034,19 +1033,29 @@ def determine_tgr_combinations(cb, io_dict):
             loggs.extend(logg)
             rs.extend(r)
     elif io_dict['object_type'] == 'single':
-        # if len(times) > 1:
-        for i in times:
-            phcb = cb['%09.6f'%i]
-            teff = phcb['teffs'].get_value()
-            logg = phcb['loggs'].get_value()
-            r = phcb['rs'].get_value()
-            teffs.extend(teff)
-            loggs.extend(logg)
-            rs.extend(r)
-        # else:
-        #     teffs.extend(cb['teffs'].get_value())
-        #     loggs.extend(cb['loggs'].get_value())
-        #     rs.extend(cb['rs'].get_value())
+        if io_dict['distortion'] == 'rotstar':
+            # if len(times) > 1:
+            for i in times:
+                phcb = cb['%09.6f'%i]
+                teff = phcb['teffs'].get_value()
+                logg = phcb['loggs'].get_value()
+                r = phcb['rs'].get_value()
+                teffs.extend(teff)
+                loggs.extend(logg)
+                rs.extend(r)
+            # else:
+            #     teffs.extend(cb['teffs'].get_value())
+            #     loggs.extend(cb['loggs'].get_value())
+            #     rs.extend(cb['rs'].get_value())
+        else:
+            for i in times:
+                phcb = cb['%09.6f'%i]
+                teff = phcb['teffs@primary'].get_value()
+                logg = phcb['loggs@primary'].get_value()
+                r = phcb['rs@primary'].get_value()
+                teffs.extend(teff)
+                loggs.extend(logg)
+                rs.extend(r)
 
     ts = np.around(np.array(teffs) / 1000.0) * 1000.0
     tls = np.floor(np.array(teffs) / 1000.0) * 1000.0
@@ -1631,10 +1640,10 @@ def PFGS(times, abund_param_values, line_list, io_dict, obs_specs, run_dictionar
             chi_array = [[9999, run_dictionary['r_equiv_primary'], run_dictionary['r_equiv_secondary'], run_dictionary['teff_primary'], run_dictionary['teff_secondary'], run_dictionary['period'], run_dictionary['sma'], run_dictionary['q'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], run_dictionary['async_primary'], run_dictionary['async_secondary'], run_dictionary['pitch_primary'], run_dictionary['pitch_secondary'], run_dictionary['yaw_primary'], run_dictionary['yaw_secondary'], -1, -1, -1, -1, run_dictionary['run_id']]]
     elif io_dict['object_type'] == 'single':
         try:
-            if run_dictionary['distortion'] == 'rotstar':
+            if io_dict['distortion'] == 'rotstar':
                 s = run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
                 spec_by_phase_s(s, line_list, abund_param_values, io_dict, run_dictionary, model_path)
-            elif run_dictionary['distortion'] = 'roche':
+            elif io_dict['distortion'] == 'roche':
                 s = run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
                 spec_by_phase_sb(s, line_list, abund_param_values, io_dict, run_dictionary, model_path)
             if obs_specs == None:
