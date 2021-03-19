@@ -510,19 +510,25 @@ def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     b['teff@primary'].set_value(value = run_dictionary['teff'])
     b['gravb_bol'].set_value_all(value=1.0)
     b['irrad_frac_refl_bol'].set_value_all(value=1.0)
+
     b.flip_constraint('mass@primary', 'sma@binary')
     b.flip_constraint('mass@secondary', 'q@binary')
     b['mass@component@primary'].set_value(value = run_dictionary['mass'])
+
     b['requiv@primary'].set_value(value = run_dictionary['requiv'])
 
     if run_dictionary['rotation_rate'] == 0:
-        s['distortion_method'].set_value('sphere')
-        if run_dictionary['rotation_rate'] == -1:
-            period = rotation_rate_to_period(run_dictionary['vsini'] / (np.sin(run_dictionary['inclination'] * np.pi/180.)), run_dictionary['requiv'])
-        else:
-            period = rotation_rate_to_period(run_dictionary['rotation_rate'], run_dictionary['requiv'])
+        b['distortion_method'].set_value('sphere')
+    elif run_dictionary['rotation_rate'] == -1:
+        period = rotation_rate_to_period(run_dictionary['vsini'] / (np.sin(run_dictionary['inclination'] * np.pi/180.)), run_dictionary['requiv'])
+    else:
+        period = rotation_rate_to_period(run_dictionary['rotation_rate'], run_dictionary['requiv'])
 
-    b['period@binary'].set_value(value = 999999)
+    b['period@binary'].set_value(value = 99999999)
+    # TODO: this still uses requiv.  should use r_equator!!!
+    b.flip_constraint('period@primary', 'syncpar@primary')
+    b['period@primary'].set_value(value = period)
+
     if run_dictionary['inclination'] == -1:
         b['incl@binary'].set_value(value = np.arcsin(run_dictionary['vsini'] / run_dictionary['rotation_rate']) * 180./np.pi)
     else:
@@ -541,8 +547,8 @@ def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     else:
         b['ld_mode'].set_value_all(value = 'manual')
         b['ld_func'].set_value_all(value = 'logarithmic')
-        b['ld_mode_bol'].set_value(value = 'manual')
-        b['ld_func_bol'].set_value(value = 'logarithmic')
+        b['ld_mode_bol'].set_value_all(value = 'manual')
+        b['ld_func_bol'].set_value_all(value = 'logarithmic')
 
     b['atm'].set_value_all(value='blackbody')
     b['include_times'] = 't0_ref@binary'
@@ -594,7 +600,7 @@ def assign_and_calc_abundance(mesh_vals, hjd, model_path, abund_param_values, li
     waves = []
     phots = []
     lp_bins = abund_param_values['lp_bins']
-    for i in range(len(ws[0])/lp_bins):
+    for i in range(int(len(ws[0])/lp_bins)):
         wavg_single, phot_avg_single = calc_flux_optimize(ws[:,lp_bins*i:lp_bins*(i+1)], ws, star_profs[:,lp_bins*i:lp_bins*(i+1)], wind_profs[:,lp_bins*i:lp_bins*(i+1)], mesh_vals)
         waves.append(wavg_single)
         phots.append(phot_avg_single/phot_avg_single[-1])
@@ -1697,11 +1703,13 @@ def main():
         pool.close()
     else:
         chi2 = map(functools.partial(PFGS, times, abund_param_values, line_list, io_dict, obs_specs), run_dictionaries)
+        # flat_list = [i for j in chi2 for i in j]
+        # print(chi2)
+    chi_full_array = []
+    for i in chi2:
+        chi_full_array.extend(i)
 
     if obs_specs != None:
-        chi_full_array = []
-        for i in chi2:
-            chi_full_array.extend(i)
         # print len(chi_full_array)
 
         if io_dict['object_type'] == 'contact_binary':
