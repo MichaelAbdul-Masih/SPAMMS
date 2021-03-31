@@ -1744,7 +1744,7 @@ def PFGS(times, abund_param_values, line_list, io_dict, obs_specs, run_dictionar
                 s = run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
                 spec_by_phase_sb(s, line_list, abund_param_values, io_dict, run_dictionary, model_path)
             if obs_specs == None:
-                chi_array = [0]
+                chi_array = [[9999, run_dictionary['teff'], run_dictionary['vsini'], run_dictionary['rotation_rate'], run_dictionary['mass'], run_dictionary['requiv'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], -1, -1, -1, -1, run_dictionary['run_id']]]
             else:
                 chi_array = calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictionary, io_dict, model_path)
         except:
@@ -1809,14 +1809,14 @@ def main():
 
         if io_dict['object_type'] == 'contact_binary':
             np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.3f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.3f %0.2f %0.2f %0.2f %s', header = 'chi2 fillout_factor teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary he c n o run_id')
-        if io_dict['object_type'] == 'binary':
+        elif io_dict['object_type'] == 'binary':
             [chi2, r_equiv_primary, r_equiv_secondary, teff_primary, teff_secondary, period, sma, q, inclination, gamma, t0, async_primary, async_secondary, pitch_primary, pitch_secondary, yaw_primary, yaw_secondary, he, cno, run_id]
             np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.2f %0.2f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.1f %0.1f %0.1f %0.1f %0.2f %0.2f %s', header = 'chi2 r_equiv_primary r_equiv_secondary teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary pitch_primary pitch_secondary yaw_primary yaw_secondary he cno run_id')
-        elif io_dict['object_type'] == 'single':
-            try:
-                np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s', header = 'chi2 teff vsini rotation_rate mass r inclination gamma t0 he c n o run_id')
-            except:
-                np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s', header = 'chi2 teff rotation_rate mass r inclination gamma t0 he c n o run_id')
+    if io_dict['object_type'] == 'single':
+        try:
+            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s', header = 'chi2 teff vsini rotation_rate mass r inclination gamma t0 he c n o run_id')
+        except:
+            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s', header = 'chi2 teff rotation_rate mass r inclination gamma t0 he c n o run_id')
 
 py_ver = sys.version_info[0]
 phoebe_ver = float(phoebe.__version__[:3])
