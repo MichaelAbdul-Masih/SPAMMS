@@ -1689,12 +1689,9 @@ def calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictio
 
                     elif io_dict['object_type'] == 'single':
                         teff = run_dictionary['teff']
-                        if run_dictionary['rotation_rate'] == -1:
-                            rotation_rate = run_dictionary['vsini'] / np.sin(run_dictionary['inclination'] * np.pi/180.)
-                        else:
-                            rotation_rate = run_dictionary['rotation_rate']
                         mass = run_dictionary['mass']
                         r = run_dictionary['requiv']
+                        r_pole = run_dictionary['r_pole']
                         if run_dictionary['inclination'] == -1:
                             inclination = np.arcsin(run_dictionary['vsini'] / run_dictionary['rotation_rate']) * 180/np.pi
                         else:
@@ -1702,11 +1699,16 @@ def calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictio
                         t0 = run_dictionary['t0']
                         gamma = run_dictionary['gamma']
                         run_id = run_dictionary['run_id']
-                        if run_dictionary['vsini'] == -1:
-                            vsini = run_dictionary['rotation_rate'] * np.sin(run_dictionary['inclination'] * np.pi/180.)
+                        v_crit_frac = run_dictionary['v_crit_frac']
+                        if v_crit_frac == -1:
+                            if run_dictionary['vsini'] == -1:
+                                vsini = run_dictionary['rotation_rate'] * np.sin(run_dictionary['inclination'] * np.pi/180.)
+                            if run_dictionary['rotation_rate'] == -1:
+                                rotation_rate = run_dictionary['vsini'] / np.sin(run_dictionary['inclination'] * np.pi/180.)
                         else:
+                            rotation_rate = run_dictionary['rotation_rate']
                             vsini = run_dictionary['vsini']
-                        chi2_info = [chi2, teff, vsini, rotation_rate, mass, r, inclination, gamma, t0, float(he), float(c), float(n), float(o), run_id]
+                        chi2_info = [chi2, teff, vsini, rotation_rate, v_crit_frac, mass, r, r_pole, inclination, gamma, t0, float(he), float(c), float(n), float(o), run_id]
 
                     chi_array.append(chi2_info)
     return chi_array
@@ -1748,7 +1750,7 @@ def PFGS(times, abund_param_values, line_list, io_dict, obs_specs, run_dictionar
             else:
                 chi_array = calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictionary, io_dict, model_path)
         except:
-            chi_array = [[9999, run_dictionary['teff'], run_dictionary['vsini'], run_dictionary['rotation_rate'], run_dictionary['mass'], run_dictionary['requiv'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], -1, -1, -1, -1, run_dictionary['run_id']]]
+            chi_array = [[9999, run_dictionary['teff'], run_dictionary['vsini'], run_dictionary['rotation_rate'], run_dictionary['v_crit_frac'], run_dictionary['mass'], run_dictionary['requiv'], run_dictionary['r_pole'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], -1, -1, -1, -1, run_dictionary['run_id']]]
 
     return chi_array
 
@@ -1814,7 +1816,7 @@ def main():
             np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.2f %0.2f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.1f %0.1f %0.1f %0.1f %0.2f %0.2f %s', header = 'chi2 r_equiv_primary r_equiv_secondary teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary pitch_primary pitch_secondary yaw_primary yaw_secondary he cno run_id')
     if io_dict['object_type'] == 'single':
         try:
-            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s', header = 'chi2 teff vsini rotation_rate mass r inclination gamma t0 he c n o run_id')
+            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.4f %0.1f %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s', header = 'chi2 teff vsini rotation_rate v_crit_frac mass r r_pole inclination gamma t0 he c n o run_id')
         except:
             np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s', header = 'chi2 teff rotation_rate mass r inclination gamma t0 he c n o run_id')
 
