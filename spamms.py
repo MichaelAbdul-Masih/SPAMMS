@@ -183,7 +183,7 @@ def read_s_input_file(input_file):
         dist = 'rotstar'
 
     fit_params = ['teff', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
-    fit_params_alt = ['teff', 'vsini', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
+    fit_params_alt = ['teff', 'vsini', 'rotation_rate', 'v_crit_frac', 'requiv', 'r_pole', 'inclination', 'mass', 't0', 'gamma']
     abundance_params = ['he_abundances', 'cno_abundances']
 
     fit_param_values = {}
@@ -201,8 +201,7 @@ def read_s_input_file(input_file):
             arg = lines[[i for i in range(len(lines)) if lines[i].startswith(param)][0]].split('=')[1].strip()
             fit_param_values[param] = arg_parse(arg)
         except:
-            if param == 'vsini':
-                fit_param_values[param] = [-1.0]
+            fit_param_values[param] = [-1.0]
     for param in abundance_params:
         arg = lines[[i for i in range(len(lines)) if lines[i].startswith(param)][0]].split('=')[1].strip()
         abund_param_values[param] = arg_parse(arg)
@@ -335,6 +334,76 @@ def create_runs_and_ids(fit_param_values):
     dictionary_of_run_dicts = dict(zip(run_ids, run_dictionaries))
 
     return run_dictionaries
+
+
+def rpole_to_requiv(r_pole, vrot, n=5000, return_r_equator=False):
+    '''
+    r_pole - is the polar radius in units of solar radius
+    vrot   - is the rotational velocity as a percentage of the critical velocity (value between 0 and 1)
+    n      - is the number of theta points that we will use to plot the surface
+    '''
+    r_pole*=1.0
+    vrot*=1.0
+    n+=1
+
+    # create an array of angles ranging from theta = 0 (upper pole) to theta = pi (lower pole)
+    theta = np.linspace(0,np.pi, n)
+
+    # to solve Eq. 6, we need to find the roots of the 3rd order polynomial. a, b, c and d are the coefficients of the polynomial
+    a = (vrot / r_pole - vrot**3/(3.*r_pole))**2 * np.sin(theta)**2
+    b = 0
+    c = -3.0
+    d = 3.*r_pole
+    # we'll collect our radii at each theta in the rs array
+    rs = []
+
+    # for each theta we find the roots and check to make sure it is positive and not complex and dump them into rs
+    for i in range(len(a)):
+        x = np.roots([a[i], b, c, d])
+        inds = np.iscomplex(x) == False
+        y = x.real[inds]
+        ind = np.argmin((r_pole*1.25 - y)**2)
+        if y[ind] > 0:
+            rs.append(y[ind])
+        else:
+            rs.append(y[ind]/2.*-1.0)
+
+    # convert rs and thetas to xs and ys
+    rs = np.array(rs)
+    xs = rs * np.sin(theta)
+    ys = rs * np.cos(theta)
+
+    # now we can calculate the volume of our system using the disk integration method
+    # we'll create a new equally spaced y array and a corresponding x array
+    new_ys = np.linspace(-1*r_pole, r_pole, n)
+    new_xs = np.interp(new_ys, ys[::-1], xs[::-1])
+
+    # calculate the volume
+    vol = 0
+    dy = (2*r_pole) / (n-1)
+    for i in range(1, n):
+        r = (new_xs[i] + new_xs[i-1])/2
+        vol += np.pi * r**2 *dy
+
+    # calculate r_equiv from the calculated total volume
+    r_equiv = (vol * 3./(4.*np.pi))**(1./3)
+
+    if return_r_equator:
+        return r_equiv, max(rs)
+    else:
+        return r_equiv
+
+
+def calc_critical_velocity(M, r_pole):
+    '''
+    M      - mass in units of solar mass
+    r_pole - polar radius in units of solar radius
+    Calculates critival velocity given M and R
+    This is a simple rearangement of Eq. 5 above.
+    '''
+    # We convert all values to km, kg and s so that the final rotational velocity is in km/s
+    v_crit = np.sqrt(2./3. * G.to('km3/(kg s2)') * M*M_sun.to('kg') / (r_pole*R_sun.to('km')))
+    return v_crit.value
 
 
 def rotation_rate_to_period(v, r):
@@ -514,20 +583,46 @@ def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     b.flip_constraint('mass@primary', 'sma@binary')
     b.flip_constraint('mass@secondary', 'q@binary')
     b['mass@component@primary'].set_value(value = run_dictionary['mass'])
-
-    b['requiv@primary'].set_value(value = run_dictionary['requiv'])
-
-    if run_dictionary['rotation_rate'] == 0:
-        b['distortion_method'].set_value('sphere')
-    elif run_dictionary['rotation_rate'] == -1:
-        period = rotation_rate_to_period(run_dictionary['vsini'] / (np.sin(run_dictionary['inclination'] * np.pi/180.)), run_dictionary['requiv'])
-    else:
-        period = rotation_rate_to_period(run_dictionary['rotation_rate'], run_dictionary['requiv'])
-
     b['period@binary'].set_value(value = 99999999)
-    # TODO: this still uses requiv.  should use r_equator!!!
-    b.flip_constraint('period@primary', 'syncpar@primary')
-    b['period@primary'].set_value(value = period)
+
+    if run_dictionary['r_pole'] != -1:
+        # calculate v_{%c} from M, r_pole and v_rot:
+        v_crit = calc_critical_velocity(run_dictionary['mass'], run_dictionary['r_pole'])
+        if run_dictionary['v_crit_frac'] != -1:
+            vrot = v_crit * run_dictionary['v_crit_frac']
+            v_percent_crit = run_dictionary['v_crit_frac']
+        elif run_dictionary['rotation_rate'] != -1:
+            vrot = run_dictionary['rotation_rate']
+            v_percent_crit = vrot / v_crit
+        else:
+            vrot = run_dictionary['vsini'] / (np.sin(run_dictionary['inclination'] * np.pi/180.))
+            v_percent_crit = vrot / v_crit
+
+        if vrot == 0:
+            b['distortion_method'].set_value('sphere')
+        else:
+            # calculate r_equiv given r_pole and v_percent_crit:
+            r_equiv, r_equator = rpole_to_requiv(run_dictionary['r_pole'], v_percent_crit, n=5000, return_r_equator=True)
+            b['requiv@primary'].set_value(value = r_equiv)
+
+            # calculate period from v_rot and r_equator
+            period = rotation_rate_to_period(vrot, r_equator)
+            b.flip_constraint('period@primary', 'syncpar@primary')
+            b['period@primary'].set_value(value = period)
+
+    else:
+        b['requiv@primary'].set_value(value = run_dictionary['requiv'])
+
+        if run_dictionary['rotation_rate'] == 0:
+            b['distortion_method'].set_value('sphere')
+        elif run_dictionary['rotation_rate'] == -1:
+            period = rotation_rate_to_period(run_dictionary['vsini'] / (np.sin(run_dictionary['inclination'] * np.pi/180.)), run_dictionary['requiv'])
+        else:
+            period = rotation_rate_to_period(run_dictionary['rotation_rate'], run_dictionary['requiv'])
+
+        # TODO: this still uses requiv.  should use r_equator!!!
+        b.flip_constraint('period@primary', 'syncpar@primary')
+        b['period@primary'].set_value(value = period)
 
     if run_dictionary['inclination'] == -1:
         b['incl@binary'].set_value(value = np.arcsin(run_dictionary['vsini'] / run_dictionary['rotation_rate']) * 180./np.pi)
