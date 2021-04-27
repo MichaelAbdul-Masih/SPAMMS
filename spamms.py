@@ -2,7 +2,7 @@ import numpy as np
 import glob
 import os
 import shutil
-from schwimmbad import MPIPool
+from schwimmbad import MultiPool
 import sys
 import itertools
 import time
@@ -1758,27 +1758,27 @@ def PFGS(times, abund_param_values, line_list, io_dict, obs_specs, run_dictionar
 def main():
     phoebe.mpi.off()
 
-    try:
-        pool = MPIPool()
-    except:
-        pass
-
-    if 'pool' in locals():
-        if not pool.is_master():
-            pool.wait()
-            sys.exit(0)
-        MPI = True
-    else:
-        MPI = False
-
     input_file = 'input.txt'
     rad_bound = False
-    opts, args = getopt.getopt(sys.argv[1:], 'i:b', ['input=', 'bound'])
+    opts, args = getopt.getopt(sys.argv[1:], 'i:n:b', ['input=', 'n_cores=', 'bound'])
     for opt, arg in opts:
         if opt in ('-i', '--input'):
             input_file = str(arg)
         if opt in ('-b', '--bound'):
             rad_bound = True
+        if opt in ('-n', '--n_cores'):
+            n_cores = int(str(arg))
+
+    try:
+        pool = MultiPool(processes = n_cores)
+    except:
+        pass
+
+    if 'pool' in locals():
+        MPI = True
+    else:
+        MPI = False
+
 
 
 
