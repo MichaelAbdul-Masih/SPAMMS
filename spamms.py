@@ -1796,10 +1796,10 @@ def main():
     print('hello')
 
     if MPI:
-        chi2 = pool.map(functools.partial(PFGS, times, abund_param_values, line_list, io_dict, obs_specs), run_dictionaries)
+        chi2 = list(pool.map(functools.partial(PFGS, times, abund_param_values, line_list, io_dict, obs_specs), run_dictionaries))
         pool.close()
     else:
-        chi2 = map(functools.partial(PFGS, times, abund_param_values, line_list, io_dict, obs_specs), run_dictionaries)
+        chi2 = list(map(functools.partial(PFGS, times, abund_param_values, line_list, io_dict, obs_specs), run_dictionaries))
         # flat_list = [i for j in chi2 for i in j]
         # print(chi2)
     chi_full_array = []
