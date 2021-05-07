@@ -599,7 +599,8 @@ def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
             v_percent_crit = vrot / v_crit
 
         if vrot == 0:
-            b['distortion_method'].set_value('sphere')
+            b['distortion_method'].set_value_all('sphere')
+            b['requiv@primary'].set_value(value = run_dictionary['r_pole'])
         else:
             # calculate r_equiv given r_pole and v_percent_crit:
             r_equiv, r_equator = rpole_to_requiv(run_dictionary['r_pole'], v_percent_crit, n=5000, return_r_equator=True)
@@ -614,7 +615,7 @@ def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
         b['requiv@primary'].set_value(value = run_dictionary['requiv'])
 
         if run_dictionary['rotation_rate'] == 0:
-            b['distortion_method'].set_value('sphere')
+            b['distortion_method'].set_value_all('sphere')
         elif run_dictionary['rotation_rate'] == -1:
             period = rotation_rate_to_period(run_dictionary['vsini'] / (np.sin(run_dictionary['inclination'] * np.pi/180.)), run_dictionary['requiv'])
         else:
@@ -652,7 +653,7 @@ def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
 
     b['columns'] = ['*@lc01', '*@rv01', 'us', 'vs', 'ws', 'vus', 'vvs', 'vws', 'loggs', 'teffs', 'mus', 'visibilities', 'rs', 'areas']
     b.run_compute()
-
+    
     execution_time = time.time() - start_time_prog_1
     # print execution_time
     return b
@@ -1827,3 +1828,4 @@ if __name__ == "__main__":
     main()
 
 # mpiexec -n 2 python PFGS.py
+# python spamms.py -n 2
