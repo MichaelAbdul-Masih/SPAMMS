@@ -41,6 +41,11 @@ def read_cb_input_file(input_file):
     object_type_ind = [i for i in range(len(lines)) if lines[i].startswith('object_type')][0]
     object_type = lines[object_type_ind].split('=')[1].strip()
 
+    ntriangles = 5000
+    ntriangles_ind = [i for i in range(len(lines)) if lines[i].startswith('ntriangles')]
+    if len(ntriangles) >= 1:
+        ntriangles = lines[ntriangles_ind[0]].split('=')[1].strip()
+
     path_to_obs_spectra_ind = [i for i in range(len(lines)) if lines[i].startswith('path_to_obs_spectra')][0]
     path_to_obs_spectra = lines[path_to_obs_spectra_ind].split('=')[1].strip()
     if not path_to_obs_spectra.endswith('/'): path_to_obs_spectra += '/'
@@ -60,7 +65,7 @@ def read_cb_input_file(input_file):
 
     fit_param_values = {}
     abund_param_values = {}
-    io_dict = {'object_type':object_type, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file}
+    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file}
     try:
         times_ind = [i for i in range(len(lines)) if lines[i].startswith('times')][0]
         times = lines[times_ind].split('=')[1].strip()
@@ -101,6 +106,11 @@ def read_b_input_file(input_file):
     object_type_ind = [i for i in range(len(lines)) if lines[i].startswith('object_type')][0]
     object_type = lines[object_type_ind].split('=')[1].strip()
 
+    ntriangles = 5000
+    ntriangles_ind = [i for i in range(len(lines)) if lines[i].startswith('ntriangles')]
+    if len(ntriangles) >= 1:
+        ntriangles = lines[ntriangles_ind[0]].split('=')[1].strip()
+
     path_to_obs_spectra_ind = [i for i in range(len(lines)) if lines[i].startswith('path_to_obs_spectra')][0]
     path_to_obs_spectra = lines[path_to_obs_spectra_ind].split('=')[1].strip()
     if not path_to_obs_spectra.endswith('/'): path_to_obs_spectra += '/'
@@ -120,7 +130,7 @@ def read_b_input_file(input_file):
 
     fit_param_values = {}
     abund_param_values = {}
-    io_dict = {'object_type':object_type, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file}
+    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file}
     try:
         times_ind = [i for i in range(len(lines)) if lines[i].startswith('times')][0]
         times = lines[times_ind].split('=')[1].strip()
@@ -161,6 +171,11 @@ def read_s_input_file(input_file):
     object_type_ind = [i for i in range(len(lines)) if lines[i].startswith('object_type')][0]
     object_type = lines[object_type_ind].split('=')[1].strip()
 
+    ntriangles = 5000
+    ntriangles_ind = [i for i in range(len(lines)) if lines[i].startswith('ntriangles')]
+    if len(ntriangles) >= 1:
+        ntriangles = lines[ntriangles_ind[0]].split('=')[1].strip()
+
     path_to_obs_spectra_ind = [i for i in range(len(lines)) if lines[i].startswith('path_to_obs_spectra')][0]
     path_to_obs_spectra = lines[path_to_obs_spectra_ind].split('=')[1].strip()
     if not path_to_obs_spectra.endswith('/'): path_to_obs_spectra += '/'
@@ -188,7 +203,7 @@ def read_s_input_file(input_file):
 
     fit_param_values = {}
     abund_param_values = {}
-    io_dict = {'object_type':object_type, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'distortion':dist}
+    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'distortion':dist}
     try:
         times_ind = [i for i in range(len(lines)) if lines[i].startswith('times')][0]
         times = lines[times_ind].split('=')[1].strip()
@@ -433,9 +448,9 @@ def run_cb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     cb['sma@binary'].set_value(value = run_dictionary['sma'])
     cb['q@binary'].set_value(value = run_dictionary['q'])
     if phoebe_ver < 2.2:
-        cb['ntriangles'].set_value_all(value = 5000)
+        cb['ntriangles'].set_value_all(value = io_dict['ntriangles'])
     else:
-        cb['ntriangles'].set_value(value = 5000)
+        cb['ntriangles'].set_value(value = io_dict['ntriangles'])
     cb['incl'].set_value(value = run_dictionary['inclination'])
 
     t = list(times)
@@ -481,7 +496,7 @@ def run_b_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     b['sma@binary'].set_value(value = run_dictionary['sma'])
     b['q@binary'].set_value(value = run_dictionary['q'])
 
-    b['ntriangles'].set_value_all(value = 5000)
+    b['ntriangles'].set_value_all(value = io_dict['ntriangles'])
 
     b['incl@binary'].set_value(value = run_dictionary['inclination'])
     b['syncpar@primary'].set_value(value = run_dictionary['async_primary'])
@@ -541,7 +556,7 @@ def run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     else:
         s['incl@component'].set_value(value = run_dictionary['inclination'])
 
-    s['ntriangles'].set_value(value = 5000)
+    s['ntriangles'].set_value(value = io_dict['ntriangles'])
 
     t = list(times)
 
@@ -630,7 +645,7 @@ def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     else:
         b['incl@binary'].set_value(value = run_dictionary['inclination'])
 
-    b['ntriangles'].set_value_all(value = 5000)
+    b['ntriangles'].set_value_all(value = io_dict['ntriangles'])
 
     t = list(times)
 
@@ -653,7 +668,7 @@ def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
 
     b['columns'] = ['*@lc01', '*@rv01', 'us', 'vs', 'ws', 'vus', 'vvs', 'vws', 'loggs', 'teffs', 'mus', 'visibilities', 'rs', 'areas']
     b.run_compute()
-    
+
     execution_time = time.time() - start_time_prog_1
     # print execution_time
     return b
