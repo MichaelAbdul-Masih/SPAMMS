@@ -43,7 +43,7 @@ def read_cb_input_file(input_file):
 
     ntriangles = 5000
     ntriangles_ind = [i for i in range(len(lines)) if lines[i].startswith('ntriangles')]
-    if len(ntriangles) >= 1:
+    if len(ntriangles_ind) >= 1:
         ntriangles = lines[ntriangles_ind[0]].split('=')[1].strip()
 
     path_to_obs_spectra_ind = [i for i in range(len(lines)) if lines[i].startswith('path_to_obs_spectra')][0]
@@ -108,7 +108,7 @@ def read_b_input_file(input_file):
 
     ntriangles = 5000
     ntriangles_ind = [i for i in range(len(lines)) if lines[i].startswith('ntriangles')]
-    if len(ntriangles) >= 1:
+    if len(ntriangles_ind) >= 1:
         ntriangles = lines[ntriangles_ind[0]].split('=')[1].strip()
 
     path_to_obs_spectra_ind = [i for i in range(len(lines)) if lines[i].startswith('path_to_obs_spectra')][0]
@@ -173,7 +173,7 @@ def read_s_input_file(input_file):
 
     ntriangles = 5000
     ntriangles_ind = [i for i in range(len(lines)) if lines[i].startswith('ntriangles')]
-    if len(ntriangles) >= 1:
+    if len(ntriangles_ind) >= 1:
         ntriangles = lines[ntriangles_ind[0]].split('=')[1].strip()
 
     path_to_obs_spectra_ind = [i for i in range(len(lines)) if lines[i].startswith('path_to_obs_spectra')][0]
