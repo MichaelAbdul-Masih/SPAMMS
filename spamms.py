@@ -538,19 +538,47 @@ def run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     logger = phoebe.logger(clevel='ERROR')
 
     s = phoebe.default_star()
-    # s['distortion_method'].set_value(value='sphere')
+
     s['teff@component'].set_value(value = run_dictionary['teff'])
     s['gravb_bol'].set_value(value = 1.0)
     s['irrad_frac_refl_bol'].set_value(value = 1.0)
+
     s['mass@component'].set_value(value = run_dictionary['mass'])
-    s['requiv@component'].set_value(value = run_dictionary['requiv'])
-    if run_dictionary['rotation_rate'] == 0:
-        s['distortion_method'].set_value('sphere')
-    if run_dictionary['rotation_rate'] == -1:
-        period = rotation_rate_to_period(run_dictionary['vsini'] / (np.sin(run_dictionary['inclination'] * np.pi/180.)), run_dictionary['requiv'])
+
+    if run_dictionary['r_pole'] != -1:
+        v_crit = calc_critical_velocity(run_dictionary['mass'], run_dictionary['r_pole'])
+        if run_dictionary['v_crit_frac'] != -1:
+            vrot = v_crit * run_dictionary['v_crit_frac']
+            v_percent_crit = run_dictionary['v_crit_frac']
+        elif run_dictionary['rotation_rate'] != -1:
+            vrot = run_dictionary['rotation_rate']
+            v_percent_crit = vrot / v_crit
+        else:
+            vrot = run_dictionary['vsini'] / (np.sin(run_dictionary['inclination'] * np.pi/180.))
+            v_percent_crit = vrot / v_crit
+
+        if vrot == 0:
+            s['distortion_method'].set_value(value='sphere')
+            s['requiv@component'].set_value(value = run_dictionary['r_pole'])
+        else:
+            # calculate r_equiv given r_pole and v_percent_crit:
+            r_equiv, r_equator = rpole_to_requiv(run_dictionary['r_pole'], v_percent_crit, n=5000, return_r_equator=True)
+            s['requiv@component'].set_value(value = r_equiv)
+
+            # calculate period from v_rot and r_equator
+            period = rotation_rate_to_period(vrot, r_equator)
+            s['period@component'].set_value(value = period)
+
     else:
-        period = rotation_rate_to_period(run_dictionary['rotation_rate'], run_dictionary['requiv'])
-    s['period@component'].set_value(value = period)
+        s['requiv@component'].set_value(value = run_dictionary['requiv'])
+        if run_dictionary['rotation_rate'] == 0:
+            s['distortion_method'].set_value('sphere')
+        if run_dictionary['rotation_rate'] == -1:
+            period = rotation_rate_to_period(run_dictionary['vsini'] / (np.sin(run_dictionary['inclination'] * np.pi/180.)), run_dictionary['requiv'])
+        else:
+            period = rotation_rate_to_period(run_dictionary['rotation_rate'], run_dictionary['requiv'])
+        s['period@component'].set_value(value = period)
+        
     if run_dictionary['inclination'] == -1:
         s['incl@component'].set_value(value = np.arcsin(run_dictionary['vsini'] / run_dictionary['rotation_rate']) * 180./np.pi)
     else:
