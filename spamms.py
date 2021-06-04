@@ -560,6 +560,7 @@ def run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
         if vrot == 0:
             s['distortion_method'].set_value(value='sphere')
             s['requiv@component'].set_value(value = run_dictionary['r_pole'])
+            s['period@component'].set_value(value = 9999999999999)
         else:
             # calculate r_equiv given r_pole and v_percent_crit:
             r_equiv, r_equator = rpole_to_requiv(run_dictionary['r_pole'], v_percent_crit, n=5000, return_r_equator=True)
@@ -578,7 +579,7 @@ def run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
         else:
             period = rotation_rate_to_period(run_dictionary['rotation_rate'], run_dictionary['requiv'])
         s['period@component'].set_value(value = period)
-        
+
     if run_dictionary['inclination'] == -1:
         s['incl@component'].set_value(value = np.arcsin(run_dictionary['vsini'] / run_dictionary['rotation_rate']) * 180./np.pi)
     else:
