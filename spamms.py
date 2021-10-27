@@ -1866,7 +1866,10 @@ def main():
             np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s', header = 'chi2 teff rotation_rate mass r inclination gamma t0 he c n o run_id')
 
 py_ver = sys.version_info[0]
-phoebe_ver = float(phoebe.__version__[:3])
+try:
+    phoebe_ver = float(phoebe.__version__[:3])
+except:
+    phoebe_ver = 2.3
 
 if __name__ == "__main__":
     main()
