@@ -1857,7 +1857,7 @@ def main():
         if io_dict['object_type'] == 'contact_binary':
             np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.3f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.3f %0.2f %0.2f %0.2f %s', header = 'chi2 fillout_factor teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary he c n o run_id')
         elif io_dict['object_type'] == 'binary':
-            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.2f %0.2f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.1f %0.1f %0.1f %0.1f %0.2f %0.2f %0.2f %0.2f %s', header = 'chi2 r_equiv_primary r_equiv_secondary teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary pitch_primary pitch_secondary yaw_primary yaw_secondary he c n o run_id')
+            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.2f %0.2f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.2f %0.2f %0.1f %0.1f %0.1f %0.1f %0.2f %0.2f %0.2f %0.2f %s', header = 'chi2 r_equiv_primary r_equiv_secondary teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary pitch_primary pitch_secondary yaw_primary yaw_secondary he c n o run_id')
     if io_dict['object_type'] == 'single':
         try:
             np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.4f %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s', header = 'chi2 teff vsini rotation_rate v_crit_frac mass r r_pole inclination gamma t0 he c n o run_id')
