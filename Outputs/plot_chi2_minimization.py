@@ -4,7 +4,6 @@ import scipy.interpolate as scInterp
 import sys
 import glob
 from scipy.stats import stats
-import sys
 sys.path.append('..')
 import settings
 from spamms import read_input_file
@@ -82,25 +81,28 @@ fit_param_range = {}
 fit_param_min = {}
 fit_param_sig = {}
 # fit_param_sig_ga = {}
+min_chi = 9999999999999
 for param in fit_params:
-    print param
+    print(param)
     fit_params_chi[param] = [np.min(data['chi2'][data[param] == unique]) for unique in fit_params_unique[param]]
     try:
         fit_param_interp[param] = scInterp.interp1d(fit_params_unique[param], fit_params_chi[param], kind='cubic')
     except:
         fit_param_interp[param] = scInterp.interp1d(fit_params_unique[param], fit_params_chi[param], kind='quadratic')
-    fit_param_range[param] = np.linspace(np.min(fit_params_unique[param]), np.max(fit_params_unique[param]), 500.)
+    fit_param_range[param] = np.linspace(np.min(fit_params_unique[param]), np.max(fit_params_unique[param]), 500)
 
-    temp_pr = np.linspace(np.min(fit_params_unique[param]), np.max(fit_params_unique[param]), 2000.)
+    temp_pr = np.linspace(np.min(fit_params_unique[param]), np.max(fit_params_unique[param]), 2000)
     temp_chi = fit_param_interp[param](temp_pr)
     ind_min = np.argmin(temp_chi)
     fit_param_min[param] = temp_pr[ind_min]
+    min_chi = min(min_chi, min(temp_chi))
 
     chi_sig = temp_chi[ind_min]*(1. + np.sqrt(2./n_dof))
     fit_param_sig[param] = chi_sig
     sig_range_ind = (temp_chi < chi_sig)
     sig_range = [min(temp_pr[sig_range_ind]), max(temp_pr[sig_range_ind])]
-    print sig_range
+    print(temp_pr[ind_min])
+    print(sig_range)
     # # print chi_sig
     # Ps = [stats.distributions.chi2.sf(i*n_dof/temp_chi[ind_min], n_dof) for i in temp_chi]
     # inds = (np.array(Ps) >= 0.05)
@@ -108,6 +110,7 @@ for param in fit_params:
     # fit_param_sig_ga[param] = chi_sig2
     # print chi_sig2
 
+chi_sig = min_chi*(1. + np.sqrt(2./n_dof))
 
 
 i = np.argmin(data['chi2'])
@@ -115,8 +118,10 @@ try:
     min_mod = 'Model' + str(int(data['run_id'][i])).zfill(4) + ' He' + str(float(data['he'][i])) + '_C' + str(float(data['c'][i])) + '_N' + str(float(data['n'][i])) + '_O' + str(float(data['o'][i]))
 except:
     min_mod = 'Model' + str(int(data['run_id'][i])).zfill(4) + ' He' + str(float(data['he'][i])) + '_CNO' + str(float(data['cno'][i]))
-print min_mod
+print(min_mod)
 
+
+'''
 for param in fit_params:
     try:
         labels = ['Model' + str(int(data['run_id'][i])).zfill(4) + ' He' + str(float(data['he'][i])) + ' C' + str(float(data['c'][i])) + ' N' + str(float(data['n'][i])) + ' O' + str(float(data['o'][i])) for i in range(len(data['run_id']))]
@@ -156,115 +161,82 @@ for param in fit_params:
                     fig.canvas.draw_idle()
     fig.canvas.mpl_connect("motion_notify_event", hover)
     plt.show()
-
-
-
 '''
-pot = np.unique(data[:, 1])
-Ta = np.unique(data[:, 2])
-Tb = np.unique(data[:, 3])
-period = np.unique(data[:, 4])
-sma = np.unique(data[:, 5])
-inc = np.unique(data[:, 6])
-q = np.unique(data[:, 7])
-t0 = np.unique(data[:, 8])
-he = np.unique(data[:, 9])
-cno = np.unique(data[:, 10])
 
-pot_chi = np.zeros_like(pot)
-Ta_chi = np.zeros_like(Ta)
-Tb_chi = np.zeros_like(Tb)
-period_chi = np.zeros_like(period)
-sma_chi = np.zeros_like(sma)
-q_chi = np.zeros_like(q)
-t0_chi = np.zeros_like(t0)
-he_chi = np.zeros_like(he)
-cno_chi = np.zeros_like(cno)
+cols = np.ceil(np.sqrt(len(fit_params)))
+rows = np.ceil(len(fit_params) / cols)
+fig, axs = plt.subplots(int(cols), int(rows), sharey=True, figsize = (8, 6))
+for ind, param in enumerate(fit_params):
+    c = int(ind%cols)
+    r = int(np.floor(ind/cols))
+    axs[r][c].scatter(data[param], data['chi2'], c = 'black', alpha=0.5, s = 4)
+    if r == 0:
+        axs[c][r].set_ylabel('Chi square')
+    axs[r][c].set_xlabel(param)
+    axs[r][c].plot(fit_param_range[param], fit_param_interp[param](fit_param_range[param]), 'k:', alpha=0.8, lw=1)
+    axs[r][c].plot(fit_param_range[param], np.ones_like(fit_param_range[param])*fit_param_sig[param], 'r')
 
-for i in range(len(pot)):
-    pot_chi[i] = np.min(data[data[:, 1] == pot[i]][:, 0])
-for i in range(len(Ta)):
-    Ta_chi[i] = np.min(data[data[:, 2] == Ta[i]][:, 0])
-for i in range(len(Tb)):
-    Tb_chi[i] = np.min(data[data[:, 3] == Tb[i]][:, 0])
-for i in range(len(period)):
-    period_chi[i] = np.min(data[data[:, 4] == period[i]][:, 0])
-for i in range(len(sma)):
-    sma_chi[i] = np.min(data[data[:, 5] == sma[i]][:, 0])
-for i in range(len(q)):
-    q_chi[i] = np.min(data[data[:, 7] == q[i]][:, 0])
-for i in range(len(t0)):
-    t0_chi[i] = np.min(data[data[:, 8] == t0[i]][:, 0])
-for i in range(len(he)):
-    he_chi[i] = np.min(data[data[:, 9] == he[i]][:, 0])
-for i in range(len(cno)):
-    cno_chi[i] = np.min(data[data[:, 10] == cno[i]][:, 0])
+for ind in range(len(fit_params), int(rows*cols)):
+    c = int(ind%cols)
+    r = int(np.floor(ind/cols))
+    axs[r][c].axis('off')
 
-print len(he), len(he_chi)
-
-
-# potINT = scInterp.interp1d(pot, pot_chi, kind='quadratic')
-TaINT = scInterp.interp1d(Ta, Ta_chi, kind='cubic')
-TbINT = scInterp.interp1d(Tb, Tb_chi, kind='cubic')
-# periodINT = scInterp.interp1d(period, period_chi, kind='cubic')
-# smaINT = scInterp.interp1d(sma, sma_chi, kind='cubic')
-# qINT = scInterp.interp1d(q, q_chi, kind='cubic')
-# t0INT = scInterp.interp1d(t0, t0_chi, kind='cubic')
-heINT = scInterp.interp1d(he, he_chi, kind='cubic')
-cnoINT = scInterp.interp1d(cno, cno_chi, kind='cubic')
-
-# potNEW = np.linspace(np.min(pot), np.max(pot), 50.)
-TaNEW = np.linspace(np.min(Ta), np.max(Ta), 50.)
-TbNEW = np.linspace(np.min(Tb), np.max(Tb), 50.)
-periodNEW = np.linspace(np.min(period), np.max(period), 50.)
-smaNEW = np.linspace(np.min(sma), np.max(sma), 50.)
-qNEW = np.linspace(np.min(q), np.max(q), 50.)
-t0NEW = np.linspace(np.min(t0), np.max(t0), 50.)
-heNEW = np.linspace(np.min(he), np.max(he), 50.)
-cnoNEW = np.linspace(np.min(cno), np.max(cno), 50.)
-
-
-fig = plt.figure(figsize=(14, 8))
-axTa = fig.add_subplot(211)
-axTb = fig.add_subplot(212, sharey=axTa)
-
-# axpot.plot(data[:, 1], data[:, 0], 'k.', alpha=0.5)
-# axpot.set_xlabel('Potential')
-axTa.plot(data[:, 2], data[:, 0], 'k.', alpha=0.5)
-axTa.set_ylabel('Chi square',  fontsize=15)
-axTa.set_xlabel('Teff (K)',  fontsize=15)
-axTb.plot(data[:, 3], data[:, 0], 'k.', alpha=0.5)
-axTb.set_ylabel('Chi square',  fontsize=15)
-axTb.set_xlabel('Teff (K)',  fontsize=15)
-
-# axpot.plot(pot, pot_chi, 'midnightblue', lw=2, alpha=.75)
-# axpot.plot(potNEW, potINT(potNEW), 'k:', alpha=0.8, lw=1)
-# axTa.plot(Ta, Ta_chi, 'indigo', lw=2, alpha=.75)
-axTa.plot(TaNEW, TaINT(TaNEW), 'k:', alpha=0.8, lw=1)
-# axTb.plot(Tb, Tb_chi, 'purple', lw=2, alpha=.75)
-axTb.plot(TbNEW, TbINT(TbNEW), 'k:', alpha=0.8, lw=1)
-
+plt.subplots_adjust(top=0.935, bottom=0.095, left=0.11, right=0.9, hspace=0.22, wspace=0.2)
 plt.show()
 
-fig = plt.figure(figsize=(14, 8))
-axhe = fig.add_subplot(211)
-axcno = fig.add_subplot(212, sharey=axhe)
 
-# axpot.plot(data[:, 1], data[:, 0], 'k.', alpha=0.5)
-# axpot.set_xlabel('Potential')
-axhe.plot(data[:, 9], data[:, 0], 'k.', alpha=0.5)
-axhe.set_ylabel('Chi square',  fontsize=15)
-axhe.set_xlabel('He',  fontsize=15)
-axcno.plot(data[:, 10], data[:, 0], 'k.', alpha=0.5)
-axcno.set_ylabel('Chi square',  fontsize=15)
-axcno.set_xlabel('CNO',  fontsize=15)
 
-# axpot.plot(pot, pot_chi, 'midnightblue', lw=2, alpha=.75)
-# axpot.plot(potNEW, potINT(potNEW), 'k:', alpha=0.8, lw=1)
-# axhe.plot(he, he_chi, 'indigo', lw=2, alpha=.75)
-axhe.plot(heNEW, heINT(heNEW), 'k:', alpha=0.8, lw=1)
-# axcno.plot(cno, cno_chi, 'purple', lw=2, alpha=.75)
-axcno.plot(cnoNEW, cnoINT(cnoNEW), 'k:', alpha=0.8, lw=1)
 
+
+chi_sig = min_chi*(1. + np.sqrt(2./n_dof))
+inds = data['chi2'] < chi_sig
+
+mods = data[inds]
+
+i = np.argmin(data['chi2'])
+min_mod = data[i]
+
+
+
+
+x = np.loadtxt(run_location + '/input_spectra/w36_spec.txt').T
+hjds = np.loadtxt(run_location + '/input_spectra/w36_hjd.txt', ndmin=1)
+
+temp1, temp2, line_list, io_dict = read_input_file(run_location + '/input.txt')
+try:
+    times = io_dict['times']
+except:
+    times = hjds
+
+line_bounds = settings.line_bounds()
+
+fig, axs = plt.subplots(1, len(line_list))
+
+hjd = times[0]
+for ind, line in enumerate(line_list):
+    y = np.loadtxt(run_location + '/Model_' + str(int(min_mod['run_id'])).zfill(4) + '/He' + str(float(min_mod['he'])) + '_CNO7.5/hjd' + str(hjd).ljust(13, '0') + '_' + line + '.txt').T
+    bounds = line_bounds[line] + np.array([-10, 10])
+
+    inds_obs = (x[0] >= bounds[0]) * (x[0] <= bounds[1])
+    axs[ind].plot(x[0][inds_obs], x[1][inds_obs], 'k')
+
+    inds_mod = (y[0] >= bounds[0]) * (y[0] <= bounds[1])
+    axs[ind].plot(y[0][inds_mod], y[1][inds_mod], 'r')
+
+    axs[ind].set_xlim(bounds)
+    axs[ind].set_xlabel('Wavelength ($\AA$)')
+
+    w = y[0][inds_mod]
+
+    chi_mods = []
+    for mod in mods:
+        z = np.loadtxt(run_location + '/Model_' + str(int(mod['run_id'])).zfill(4) + '/He' + str(float(mod['he'])) + '_CNO7.5/hjd' + str(hjd).ljust(13, '0') + '_' + line + '.txt').T
+        chi_mods.append(np.interp(w, z[0], z[1]))
+
+    upper = np.max(chi_mods, axis=0)
+    lower = np.min(chi_mods, axis=0)
+
+    axs[ind].fill_between(w, lower, upper, color='red', alpha = 0.3)
+
+axs[0].set_ylabel('Scaled Flux')
 plt.show()
-'''
