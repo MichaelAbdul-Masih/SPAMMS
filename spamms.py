@@ -614,7 +614,6 @@ def run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
 
 
 def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
-    t = io_dict['times']
     start_time_prog_1 = time.time()
     logger = phoebe.logger(clevel='ERROR')
 
