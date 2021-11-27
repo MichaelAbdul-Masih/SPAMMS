@@ -9,6 +9,7 @@ import time
 import functools
 from scipy.interpolate import splrep, splev
 from scipy import stats
+import scipy.optimize as so
 import phoebe
 from phoebe import u,c
 import math
@@ -409,6 +410,36 @@ def rpole_to_requiv(r_pole, vrot, n=5000, return_r_equator=False):
         return r_equiv
 
 
+def func_requiv_to_rpole(rpole, vrot, requiv):
+    return np.sqrt((rpole_to_requiv(rpole, vrot) - requiv)**2)
+
+
+def requiv_to_rpole(requiv, vrot):
+    '''
+    requiv - is the volumetric equivalent spherical radius in units of solar radius
+    vrot   - is the rotational velocity as a percentage of the critical velocity (value between 0 and 1)
+    '''
+    res = so.minimize(func_requiv_to_rpole, np.array([requiv]), args = (vrot,requiv), bounds=[(requiv*0.5,requiv*1.1)])
+    return res.x[0]
+
+
+def func_requiv_to_rpole_abs_units(rpole, vrot, requiv, mass):
+    v_crit = calc_critical_velocity(mass, rpole)
+    v_percent_crit = vrot/v_crit
+    return np.sqrt((rpole_to_requiv(rpole, v_percent_crit) - requiv)**2)
+
+
+def requiv_to_rpole_abs_units(requiv, vrot, mass):
+    '''
+    requiv - is the volumetric equivalent spherical radius in units of solar radius
+    vrot   - is the rotational velocity in km/s
+    mass   - is the mass in solar masses
+    '''
+
+    res = so.minimize(func_requiv_to_rpole_abs_units, np.array([requiv]), args = (vrot,requiv,mass), bounds=[(requiv*0.5,requiv*1.1)])
+    return res.x[0]
+
+
 def calc_critical_velocity(M, r_pole):
     '''
     M      - mass in units of solar mass
@@ -574,13 +605,30 @@ def run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
         s['requiv@component'].set_value(value = run_dictionary['requiv'])
         if run_dictionary['rotation_rate'] == 0:
             s['distortion_method'].set_value('sphere')
-        if run_dictionary['rotation_rate'] == -1:
-            period = rotation_rate_to_period(run_dictionary['vsini'] / (np.sin(run_dictionary['inclination'] * np.pi/180.)), run_dictionary['requiv'])
+        elif run_dictionary['rotation_rate'] == -1 and run_dictionary['v_crit_frac'] != -1:
+            # calculate r_pole given r_equiv and v_percent_crit; calc r_equator:
+            r_pole = requiv_to_rpole(run_dictionary['requiv'], run_dictionary['v_crit_frac'])
+            junk, r_equator = rpole_to_requiv(r_pole, run_dictionary['v_crit_frac'], n=5000, return_r_equator=True)
+            # calc v_crit from mass and r_pole and then v_rot from v_crit
+            v_crit = calc_critical_velocity(run_dictionary['mass'], r_pole)
+            vrot = v_crit * run_dictionary['v_crit_frac']
+            period = rotation_rate_to_period(vrot, r_equator)
         else:
-            period = rotation_rate_to_period(run_dictionary['rotation_rate'], run_dictionary['requiv'])
+            if run_dictionary['rotation_rate'] == -1:
+                vrot = run_dictionary['vsini'] / (np.sin(run_dictionary['inclination'] * np.pi/180.))
+            else:
+                vrot = run_dictionary['rotation_rate']
+
+            r_pole = requiv_to_rpole_abs_units(run_dictionary['requiv'], vrot, run_dictionary['mass'])
+            v_crit = calc_critical_velocity(run_dictionary['mass'], r_pole)
+            v_percent_crit = vrot / v_crit
+            junk, r_equator = rpole_to_requiv(r_pole, v_percent_crit, n=5000, return_r_equator=True)
+            period = rotation_rate_to_period(vrot, r_equator)
         s['period@component'].set_value(value = period)
 
-    if run_dictionary['inclination'] == -1:
+    if run_dictionary['inclination'] == -1 and run_dictionary['rotation_rate'] == -1:
+        s['incl@binary'].set_value(value = np.arcsin(run_dictionary['vsini'] / vrot) * 180./np.pi)
+    elif run_dictionary['inclination'] == -1 and run_dictionary['rotation_rate'] != -1:
         s['incl@component'].set_value(value = np.arcsin(run_dictionary['vsini'] / run_dictionary['rotation_rate']) * 180./np.pi)
     else:
         s['incl@component'].set_value(value = run_dictionary['inclination'])
@@ -659,16 +707,32 @@ def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
 
         if run_dictionary['rotation_rate'] == 0:
             b['distortion_method'].set_value_all('sphere')
-        elif run_dictionary['rotation_rate'] == -1:
-            period = rotation_rate_to_period(run_dictionary['vsini'] / (np.sin(run_dictionary['inclination'] * np.pi/180.)), run_dictionary['requiv'])
+        elif run_dictionary['rotation_rate'] == -1 and run_dictionary['v_crit_frac'] != -1:
+            # calculate r_pole given r_equiv and v_percent_crit; calc r_equator:
+            r_pole = requiv_to_rpole(run_dictionary['requiv'], run_dictionary['v_crit_frac'])
+            junk, r_equator = rpole_to_requiv(r_pole, run_dictionary['v_crit_frac'], n=5000, return_r_equator=True)
+            # calc v_crit from mass and r_pole and then v_rot from v_crit
+            v_crit = calc_critical_velocity(run_dictionary['mass'], r_pole)
+            vrot = v_crit * run_dictionary['v_crit_frac']
+            period = rotation_rate_to_period(vrot, r_equator)
         else:
-            period = rotation_rate_to_period(run_dictionary['rotation_rate'], run_dictionary['requiv'])
+            if run_dictionary['rotation_rate'] == -1:
+                vrot = run_dictionary['vsini'] / (np.sin(run_dictionary['inclination'] * np.pi/180.))
+            else:
+                vrot = run_dictionary['rotation_rate']
 
-        # TODO: this still uses requiv.  should use r_equator!!!
+            r_pole = requiv_to_rpole_abs_units(run_dictionary['requiv'], vrot, run_dictionary['mass'])
+            v_crit = calc_critical_velocity(run_dictionary['mass'], r_pole)
+            v_percent_crit = vrot / v_crit
+            junk, r_equator = rpole_to_requiv(r_pole, v_percent_crit, n=5000, return_r_equator=True)
+            period = rotation_rate_to_period(vrot, r_equator)
+
         b.flip_constraint('period@primary', 'syncpar@primary')
         b['period@primary'].set_value(value = period)
 
-    if run_dictionary['inclination'] == -1:
+    if run_dictionary['inclination'] == -1 and run_dictionary['rotation_rate'] == -1:
+        b['incl@binary'].set_value(value = np.arcsin(run_dictionary['vsini'] / vrot) * 180./np.pi)
+    elif run_dictionary['inclination'] == -1 and run_dictionary['rotation_rate'] != -1:
         b['incl@binary'].set_value(value = np.arcsin(run_dictionary['vsini'] / run_dictionary['rotation_rate']) * 180./np.pi)
     else:
         b['incl@binary'].set_value(value = run_dictionary['inclination'])
