@@ -1811,9 +1811,13 @@ def calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictio
                         if v_crit_frac == -1:
                             if run_dictionary['vsini'] == -1:
                                 vsini = run_dictionary['rotation_rate'] * np.sin(run_dictionary['inclination'] * np.pi/180.)
+                                rotation_rate = run_dictionary['rotation_rate']
                             if run_dictionary['rotation_rate'] == -1:
                                 rotation_rate = run_dictionary['vsini'] / np.sin(run_dictionary['inclination'] * np.pi/180.)
                                 vsini = run_dictionary['vsini']
+                            else:
+                                vsini = run_dictionary['vsini']
+                                rotation_rate = run_dictionary['rotation_rate']
                         else:
                             rotation_rate = run_dictionary['rotation_rate']
                             vsini = run_dictionary['vsini']
