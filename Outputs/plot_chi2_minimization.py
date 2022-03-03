@@ -198,9 +198,10 @@ min_mod = data[i]
 
 
 
-
-x = np.loadtxt(run_location + '/input_spectra/w36_spec.txt').T
-hjds = np.loadtxt(run_location + '/input_spectra/w36_hjd.txt', ndmin=1)
+f_specs = glob.glob(run_location + '/input_spectra/*_spec.txt')
+f_hjds = glob.glob(run_location + '/input_spectra/*_hjd.txt')
+x = np.loadtxt(f_specs[0]).T
+hjds = np.loadtxt(f_hjds[0], ndmin=1)
 
 temp1, temp2, line_list, io_dict = read_input_file(run_location + '/input.txt')
 try:
