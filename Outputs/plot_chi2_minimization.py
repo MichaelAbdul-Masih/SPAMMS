@@ -165,13 +165,13 @@ for param in fit_params:
 
 cols = np.ceil(np.sqrt(len(fit_params)))
 rows = np.ceil(len(fit_params) / cols)
-fig, axs = plt.subplots(int(cols), int(rows), sharey=True, figsize = (8, 6))
+fig, axs = plt.subplots(int(rows), int(cols), sharey=True, figsize = (8, 6))
 for ind, param in enumerate(fit_params):
     c = int(ind%cols)
     r = int(np.floor(ind/cols))
     axs[r][c].scatter(data[param], data['chi2'], c = 'black', alpha=0.5, s = 4)
     if r == 0:
-        axs[c][r].set_ylabel('Chi square')
+        axs[r][c].set_ylabel('Chi square')
     axs[r][c].set_xlabel(param)
     axs[r][c].plot(fit_param_range[param], fit_param_interp[param](fit_param_range[param]), 'k:', alpha=0.8, lw=1)
     axs[r][c].plot(fit_param_range[param], np.ones_like(fit_param_range[param])*fit_param_sig[param], 'r')
