@@ -64,9 +64,9 @@ def read_cb_input_file(input_file):
     fit_params = ['fillout_factor', 'teff_primary', 'teff_secondary', 'period', 'sma', 'inclination', 'q', 't0', 'async_primary', 'async_secondary', 'gamma']
     abundance_params = ['he_abundances', 'cno_abundances']
 
-    fit_param_values = {}
+    fit_param_values = {'async_primary':1.0, 'async_secondary':1.0}
     abund_param_values = {}
-    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file}
+    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'rad_bound' = False}
     try:
         times_ind = [i for i in range(len(lines)) if lines[i].startswith('times')][0]
         times = lines[times_ind].split('=')[1].strip()
@@ -125,13 +125,20 @@ def read_b_input_file(input_file):
     path_to_grid = lines[path_to_grid_ind].split('=')[1].strip()
     if not path_to_grid.endswith('/'): path_to_grid += '/'
 
+    try:
+        dist_ind = [i for i in range(len(lines)) if lines[i].startswith('distortion')][0]
+        dist = lines[dist_ind].split('=')[1].strip()
+        if dist not in ['rotstar', 'roche', 'sphere']:
+            dist = 'roche'
+    except:
+        dist = 'roche'
 
     fit_params = ['r_equiv_primary', 'r_equiv_secondary', 'teff_primary', 'teff_secondary', 'period', 'sma', 'inclination', 'q', 't0', 'async_primary', 'async_secondary', 'pitch_primary', 'pitch_secondary', 'yaw_primary', 'yaw_secondary', 'gamma']
     abundance_params = ['he_abundances', 'cno_abundances']
 
-    fit_param_values = {}
+    fit_param_values = {'async_primary':1.0, 'async_secondary':1.0, 'pitch_primary':0.0, 'pitch_secondary':0.0, 'yaw_primary':0.0, 'yaw_secondary':0.0}
     abund_param_values = {}
-    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file}
+    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'distortion':dist, 'rad_bound' = False}
     try:
         times_ind = [i for i in range(len(lines)) if lines[i].startswith('times')][0]
         times = lines[times_ind].split('=')[1].strip()
@@ -193,7 +200,7 @@ def read_s_input_file(input_file):
     try:
         dist_ind = [i for i in range(len(lines)) if lines[i].startswith('distortion')][0]
         dist = lines[dist_ind].split('=')[1].strip()
-        if dist not in ['rotstar', 'roche']:
+        if dist not in ['rotstar', 'roche', 'sphere']:
             dist = 'rotstar'
     except:
         dist = 'rotstar'
@@ -204,7 +211,7 @@ def read_s_input_file(input_file):
 
     fit_param_values = {}
     abund_param_values = {}
-    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'distortion':dist}
+    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'distortion':dist, 'rad_bound' = False}
     try:
         times_ind = [i for i in range(len(lines)) if lines[i].startswith('times')][0]
         times = lines[times_ind].split('=')[1].strip()
@@ -526,6 +533,8 @@ def run_b_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     b['period@binary'].set_value(value = run_dictionary['period'])
     b['sma@binary'].set_value(value = run_dictionary['sma'])
     b['q@binary'].set_value(value = run_dictionary['q'])
+
+    b['distortion_method'].set_value_all(value = io_dict['distortion'])
 
     b['ntriangles'].set_value_all(value = io_dict['ntriangles'])
 
@@ -1238,7 +1247,7 @@ def determine_tgr_combinations(cb, io_dict):
             loggs.extend(logg)
             rs.extend(r)
     elif io_dict['object_type'] == 'single':
-        if io_dict['distortion'] == 'rotstar':
+        if io_dict['distortion'] in ['rotstar', 'sphere']:
             # if len(times) > 1:
             for i in times:
                 phcb = cb['%09.6f'%i]
@@ -1274,7 +1283,7 @@ def determine_tgr_combinations(cb, io_dict):
     # combinations = ['T' + str(int(ts[i])) + '_G' + str(lgs[i]) + '_R' + format(rads[i], '.2f') for i in range(len(ts))]
     combinations = ['T' + str(int(tls[i])) + '_G' + str(lgs[i]) + '_R' + format(rads[i], '.2f') for i in range(len(ts))]
     combinations.extend(['T' + str(int(tus[i])) + '_G' + str(lgs[i]) + '_R' + format(rads[i], '.2f') for i in range(len(ts))])
-    return list(set(combinations)), stats.mode(np.array(combinations))[0][0]
+    return list(set(combinations)), max(set(combinations), key=combinations.count)
 
 
 def line_dictionary_structure(combinations, lines, io_dict):
@@ -1852,7 +1861,7 @@ def PFGS(times, abund_param_values, line_list, io_dict, obs_specs, run_dictionar
             chi_array = [[9999, run_dictionary['r_equiv_primary'], run_dictionary['r_equiv_secondary'], run_dictionary['teff_primary'], run_dictionary['teff_secondary'], run_dictionary['period'], run_dictionary['sma'], run_dictionary['q'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], run_dictionary['async_primary'], run_dictionary['async_secondary'], run_dictionary['pitch_primary'], run_dictionary['pitch_secondary'], run_dictionary['yaw_primary'], run_dictionary['yaw_secondary'], -1, -1, -1, -1, run_dictionary['run_id']]]
     elif io_dict['object_type'] == 'single':
         try:
-            if io_dict['distortion'] == 'rotstar':
+            if io_dict['distortion'] in ['rotstar', 'sphere']:
                 s = run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
                 spec_by_phase_s(s, line_list, abund_param_values, io_dict, run_dictionary, model_path)
             elif io_dict['distortion'] == 'roche':
@@ -1872,13 +1881,12 @@ def main():
     phoebe.mpi.off()
 
     input_file = 'input.txt'
-    rad_bound = False
     opts, args = getopt.getopt(sys.argv[1:], 'i:n:b', ['input=', 'n_cores=', 'bound'])
     for opt, arg in opts:
         if opt in ('-i', '--input'):
             input_file = str(arg)
         if opt in ('-b', '--bound'):
-            rad_bound = True
+            io_dict['rad_bound'] = True
         if opt in ('-n', '--n_cores'):
             n_cores = int(str(arg))
 
@@ -1899,7 +1907,6 @@ def main():
     setup_output_directory(io_dict)
     check_input_spectra(io_dict)
     times, obs_specs = get_obs_spec_and_times(io_dict)
-    io_dict['rad_bound'] = rad_bound
 
     run_dictionaries = create_runs_and_ids(fit_param_values)
     # run_dictionary = run_dictionaries[0]
