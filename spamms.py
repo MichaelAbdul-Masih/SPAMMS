@@ -679,7 +679,6 @@ def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     b['teff@primary'].set_value(value = run_dictionary['teff'])
     b['gravb_bol'].set_value_all(value=1.0)
     b['irrad_frac_refl_bol'].set_value_all(value=1.0)
-    b['component@orbit@per0'].set_value(value = 270)
 
     b.flip_constraint('mass@primary', 'sma@binary')
     b.flip_constraint('mass@secondary', 'q@binary')
@@ -766,7 +765,7 @@ def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     b['atm'].set_value_all(value='blackbody')
     b['include_times'] = 't0_ref@binary'
     b.flip_constraint('t0_ref@binary', 't0_supconj')
-    b['t0_ref@binary@component'].set_value(value = run_dictionary['t0'])
+    b['t0_ref@binary@component'].set_value(value = -24999999)
 
     b['columns'] = ['*@lc01', '*@rv01', 'us', 'vs', 'ws', 'vus', 'vvs', 'vws', 'loggs', 'teffs', 'mus', 'visibilities', 'rs', 'areas']
     b.run_compute()
