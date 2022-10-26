@@ -66,7 +66,7 @@ def read_cb_input_file(input_file):
 
     fit_param_values = {'async_primary':1.0, 'async_secondary':1.0}
     abund_param_values = {}
-    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'rad_bound' = False}
+    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'rad_bound':False}
     try:
         times_ind = [i for i in range(len(lines)) if lines[i].startswith('times')][0]
         times = lines[times_ind].split('=')[1].strip()
@@ -138,7 +138,7 @@ def read_b_input_file(input_file):
 
     fit_param_values = {'async_primary':1.0, 'async_secondary':1.0, 'pitch_primary':0.0, 'pitch_secondary':0.0, 'yaw_primary':0.0, 'yaw_secondary':0.0}
     abund_param_values = {}
-    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'distortion':dist, 'rad_bound' = False}
+    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'distortion':dist, 'rad_bound':False}
     try:
         times_ind = [i for i in range(len(lines)) if lines[i].startswith('times')][0]
         times = lines[times_ind].split('=')[1].strip()
@@ -211,7 +211,7 @@ def read_s_input_file(input_file):
 
     fit_param_values = {}
     abund_param_values = {}
-    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'distortion':dist, 'rad_bound' = False}
+    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'distortion':dist, 'rad_bound':False}
     try:
         times_ind = [i for i in range(len(lines)) if lines[i].startswith('times')][0]
         times = lines[times_ind].split('=')[1].strip()
