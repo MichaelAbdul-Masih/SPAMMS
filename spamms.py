@@ -818,7 +818,7 @@ def assign_and_calc_abundance(mesh_vals, hjd, model_path, abund_param_values, li
         wavg_single, phot_avg_single = calc_flux_optimize(ws[:,lp_bins*i:lp_bins*(i+1)], ws, star_profs[:,lp_bins*i:lp_bins*(i+1)], wind_profs[:,lp_bins*i:lp_bins*(i+1)], mesh_vals)
         waves.append(wavg_single)
         phots.append(phot_avg_single/phot_avg_single[-1])
-        np.savetxt(model_path + '/He' + str(he_abundances[i]) + '_CNO' + str(cno_abundances[i]) + '/hjd' + str(hjd).ljust(13, '0') + '_' + line + '.txt', np.array([wavg_single, phot_avg_single/phot_avg_single[-1]]).T)
+        np.savetxt(model_path + '/He' + str(he_abundances[i]) + '_CNO' + str(cno_abundances[i]) + '/hjd' + str(round(hjd, 13)).ljust(13, '0') + '_' + line + '.txt', np.array([wavg_single, phot_avg_single/phot_avg_single[-1]]).T)
 
     # phot_avg = interp_abundances(phots, He_abundance, CNO_abundance)
     # wavg = waves[0]
