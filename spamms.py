@@ -834,8 +834,13 @@ def assign_spectra(mesh_vals, line, lines_dic, io_dict):
     lgs = np.around(mesh_vals['loggs']*10.) / 10.
     rads = np.around(mesh_vals['rs'] * 4.0) / 4.0
     if io_dict['rad_bound']:
-        rads = rads * (rads <= 9.) + 9.*(rads > 9.)
-        rads = rads * (rads >= 6.5) + 6.5*(rads < 6.5)
+        f = glob.glob(io_dict['path_to_grid'] + '*')
+        rs = [float(i.split('_')[-1][1:]) for i in f]
+        max_rads = max(rs)
+        min_rads = min(rs)
+
+        rads = rads * (rads <= max_rads) + max_rads*(rads > max_rads)
+        rads = rads * (rads >= min_rads) + min_rads*(rads < min_rads)
 
     # lgs = lgs * (lgs >= 3.) + 3.*(lgs < 3.)
 
