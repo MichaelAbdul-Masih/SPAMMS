@@ -1871,7 +1871,8 @@ def PFGS(times, abund_param_values, line_list, io_dict, obs_specs, run_dictionar
                 chi_array = [0]
             else:
                 chi_array = calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictionary, io_dict, model_path)
-        except:
+        except FileNotFoundError:
+            print('\nFileNotFoundError: At least one patch falls outside of the specified grid.  This model will be skipped.  To prevent this in the future, run grid checks first by passing "-c" when running SPAMMS to make sure that all of the models fall within the grid.')
             chi_array = [[9999, run_dictionary['fillout_factor'], run_dictionary['teff_primary'], run_dictionary['teff_secondary'], run_dictionary['period'], run_dictionary['sma'], run_dictionary['q'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], run_dictionary['async_primary'], run_dictionary['async_secondary'], -1, -1, -1, -1, run_dictionary['run_id']]]
     elif io_dict['object_type'] == 'binary':
         try:
@@ -1896,7 +1897,8 @@ def PFGS(times, abund_param_values, line_list, io_dict, obs_specs, run_dictionar
                 chi_array = [[9999, run_dictionary['teff'], run_dictionary['vsini'], run_dictionary['rotation_rate'], run_dictionary['v_crit_frac'], run_dictionary['mass'], run_dictionary['requiv'], run_dictionary['r_pole'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], -1, -1, -1, -1, run_dictionary['run_id']]]
             else:
                 chi_array = calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictionary, io_dict, model_path)
-        except:
+        except FileNotFoundError:
+            print('\nFileNotFoundError: At least one patch falls outside of the specified grid.  This model will be skipped.  To prevent this in the future, run grid checks first by passing "-c" when running SPAMMS to make sure that all of the models fall within the grid.')
             chi_array = [[9999, run_dictionary['teff'], run_dictionary['vsini'], run_dictionary['rotation_rate'], run_dictionary['v_crit_frac'], run_dictionary['mass'], run_dictionary['requiv'], run_dictionary['r_pole'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], -1, -1, -1, -1, run_dictionary['run_id']]]
 
     return chi_array
@@ -1932,8 +1934,9 @@ def main():
 
 
     fit_param_values, abund_param_values, line_list, io_dict = read_input_file(input_file)
-    setup_output_directory(io_dict)
-    check_input_spectra(io_dict)
+    if run_checks == False:
+        setup_output_directory(io_dict)
+        check_input_spectra(io_dict)
     times, obs_specs = get_obs_spec_and_times(io_dict)
 
     run_dictionaries = create_runs_and_ids(fit_param_values)
@@ -1954,11 +1957,12 @@ def main():
         final_list = list(set(flat_list))
         final_list.sort()
 
-        if len(combs) > 0:
-            error_string = 'The chosen parameters result in patches that fall outside of the specified grid. The missing entries are: \n{}'.format(final_list)
+        if len(final_list) > 0:
+            error_string = 'The chosen parameters result in patches that fall outside of the specified grid. The missing grid points are: \n{}'.format(final_list)
             raise ValueError('Failed to pass grid checks: \n{}'.format(error_string))
         else:
-            print('Grid checks complete')
+            print('Grid checks complete, no issues detected')
+            sys.exit()
 
 
 
