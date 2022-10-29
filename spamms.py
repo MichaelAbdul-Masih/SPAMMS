@@ -311,7 +311,24 @@ def check_input_spectra(io_dict):
     if len(dif_set) !=0:
         raise ValueError('Mismatch between Spectra and HJD core filenames %s' %dif_set)
 
-    print('Checks Complete')
+    print('Input spectra checks complete')
+
+
+def check_grid(times, abund_param_values, io_dict, grid_entries, run_dictionary):
+
+    if io_dict['object_type'] == 'contact_binary':
+        cb = run_cb_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
+    elif io_dict['object_type'] == 'binary':
+        cb = run_b_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
+    else:
+        if io_dict['distortion'] == 'rotstar':
+            cb = run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
+        else:
+            cb = run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
+    combs, mode_combs = determine_tgr_combinations(cb, io_dict)
+
+    missing_combs = [i for i in combs if i not in grid_entries]
+    return missing_combs
 
 
 def get_obs_spec_and_times(io_dict):
@@ -1887,8 +1904,9 @@ def PFGS(times, abund_param_values, line_list, io_dict, obs_specs, run_dictionar
 def main():
     phoebe.mpi.off()
 
+    run_checks = False
     input_file = 'input.txt'
-    opts, args = getopt.getopt(sys.argv[1:], 'i:n:b', ['input=', 'n_cores=', 'bound'])
+    opts, args = getopt.getopt(sys.argv[1:], 'i:n:bc', ['input=', 'n_cores=', 'bound', 'checks'])
     for opt, arg in opts:
         if opt in ('-i', '--input'):
             input_file = str(arg)
@@ -1896,6 +1914,8 @@ def main():
             io_dict['rad_bound'] = True
         if opt in ('-n', '--n_cores'):
             n_cores = int(str(arg))
+        if opt in ('-c', '--checks'):
+            run_checks = True
 
     try:
         pool = MultiPool(processes = n_cores)
@@ -1918,6 +1938,27 @@ def main():
     run_dictionaries = create_runs_and_ids(fit_param_values)
     # run_dictionary = run_dictionaries[0]
     # chi2 = run_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
+
+    if run_checks:
+        grid = glob.glob(io_dict['path_to_grid'] + 'T*')
+        grid_entries = [i.split('/')[-1] for i in grid]
+
+        if MPI:
+            combs = list(pool.map(functools.partial(check_grid, times, abund_param_values, io_dict, grid_entries), run_dictionaries))
+            # pool.close()
+        else:
+            combs = list(map(functools.partial(check_grid, times, abund_param_values, io_dict, grid_entries), run_dictionaries))
+
+        flat_list = [i for j in combs for i in j]
+        final_list = list(set(flat_list))
+        final_list.sort()
+
+        if len(combs) > 0:
+            error_string = 'The chosen parameters result in patches that fall outside of the specified grid. The missing entries are: \n{}'.format(final_list)
+            raise ValueError('Failed to pass grid checks: \n{}'.format(error_string))
+        else:
+            print('Grid checks complete')
+
 
 
     print('hello')
