@@ -797,6 +797,11 @@ def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
 def update_output_directories(times, abund_param_values, io_dict, run_dictionary):
     model_path = io_dict['output_directory'] + 'Model_' + str(run_dictionary['run_id']).zfill(4)
     os.mkdir(model_path)
+    with open(model_path + '/model_info.txt', 'w') as file:
+        for key, value in io_dict.items():
+            file.write('%s:%s\n' % (key, value))
+        for key, value in run_dictionary.items():
+            file.write('%s:%s\n' % (key, value))
     if abund_param_values['interpolate_abundances']:
         print('abundance interpolation is not supported yet.')
     he_abundances = [i for j in abund_param_values['cno_abundances'] for i in abund_param_values['he_abundances']]
