@@ -855,17 +855,6 @@ def assign_spectra(mesh_vals, line, lines_dic, io_dict):
     ts = np.around(mesh_vals['teffs'] / 1000.0) * 1000.0
     lgs = np.around(mesh_vals['loggs']*10.) / 10.
     rads = np.around(mesh_vals['rs'] * 4.0) / 4.0
-    if io_dict['rad_bound']:
-        f = glob.glob(io_dict['path_to_grid'] + '*')
-        rs = [float(i.split('_')[-1][1:]) for i in f]
-        max_rads = max(rs)
-        min_rads = min(rs)
-
-        rads = rads * (rads <= max_rads) + max_rads*(rads > max_rads)
-        rads = rads * (rads >= min_rads) + min_rads*(rads < min_rads)
-
-    # lgs = lgs * (lgs >= 3.) + 3.*(lgs < 3.)
-
 
     ws = []
     star_profs = []
@@ -884,17 +873,13 @@ def assign_spectra(mesh_vals, line, lines_dic, io_dict):
 
 
 def assign_spectra_interp(mesh_vals, line, lines_dic, io_dict, abund_param_values):
-    ts = mesh_vals['teffs']
-    tls = np.floor(mesh_vals['teffs'] / 1000.0) * 1000.0
-    tus = np.ceil(mesh_vals['teffs'] / 1000.0) * 1000.0
-    w1s = (tus - ts)/1000.0
-    w2s = (ts - tls)/1000.0
-    lgs = np.around(mesh_vals['loggs']*10.) / 10.
-    rads = np.around(mesh_vals['rs'] * 4.0) / 4.0
-    if io_dict['rad_bound']:
-        rads = rads * (rads <= 9.) + 9.*(rads > 9.)
-        rads = rads * (rads >= 6.5) + 6.5*(rads < 6.5)
-    # lgs = lgs * (lgs >= 3.) + 3.*(lgs < 3.)
+    ts = mesh_vals['ts']
+    tls = mesh_vals['tls']
+    tus = mesh_vals['tus']
+    w1s = mesh_vals['w1s']
+    w2s = mesh_vals['w2s']
+    lgs = mesh_vals['lgs']
+    rads = mesh_vals['rads']
 
     ws = []
     star_low_profs = []
@@ -903,8 +888,6 @@ def assign_spectra_interp(mesh_vals, line, lines_dic, io_dict, abund_param_value
     wind_high_profs = []
     start_time = time.time()
     for i in tqdm(range(len(ts))):
-        # w, stl, wil = lookup_line_profs_from_dic(tls[i], lgs[i], rads[i], mesh_vals['mus'][i], mesh_vals['viss'][i], line, lines_dic['lower'])
-        # wu, stu, wiu = lookup_line_profs_from_dic(tus[i], lgs[i], rads[i], mesh_vals['mus'][i], mesh_vals['viss'][i], line, lines_dic['upper'])
         w, stl, wil = lookup_line_profs_from_dic(tls[i], lgs[i], rads[i], mesh_vals['mus'][i], mesh_vals['viss'][i], line, lines_dic)
         wu, stu, wiu = lookup_line_profs_from_dic(tus[i], lgs[i], rads[i], mesh_vals['mus'][i], mesh_vals['viss'][i], line, lines_dic)
         ws.append(w)
@@ -1055,6 +1038,43 @@ def calc_flux(ws, ws_all, star_profs, wind_profs, mesh_vals):
     return wave, flux
 
 
+def apply_rad_bound(io_dict, rads, teffs, loggs):
+    # grab the models in the grid
+    f = glob.glob(io_dict['path_to_grid'] + '*')
+    grid_points = [i.split('/')[-1] for i in f]
+
+    # grab just the teff logg combinations:
+    teff_g_combos = list(set([i.split('_R')[0] for i in grid_points]))
+    teff_g_combos.sort()
+
+    # grab the radii available for each teff logg combination
+    rads_per_combo = [[float(i.split('_R')[-1]) for i in grid_points if i.startswith(j)] for j in teff_g_combos]
+
+    # define the max and min radii dictionaries
+    max_rads_dict = {}
+    min_rads_dict = {}
+    for i, combo in enumerate(teff_g_combos):
+        max_rads_dict[combo] = max(rads_per_combo[i])
+        min_rads_dict[combo] = min(rads_per_combo[i])
+
+    # test to see if the grid is sparse or regular
+    if len(list(set([value for key, value in min_rads_dict.items()]))) == 1:
+        min_rads = min_rads_dict[teff_g_combos[0]]
+    else:
+        min_rads = np.array([min_rads_dict['T%s_G%s'%(int(teffs[i]), loggs[i])] for i in range(len(rads))])
+
+    if len(list(set([value for key, value in max_rads_dict.items()]))) == 1:
+        max_rads = max_rads_dict[teff_g_combos[0]]
+    else:
+        max_rads = np.array([max_rads_dict['T%s_G%s'%(int(teffs[i]), loggs[i])] for i in range(len(rads))])
+
+    # define the new radii
+    rads = rads * (rads <= max_rads) + max_rads*(rads > max_rads)
+    rads = rads * (rads >= min_rads) + min_rads*(rads < min_rads)
+    return rads
+
+
+
 def spec_by_phase_cb(cb, line_list, abund_param_values, io_dict, run_dictionary, model_path):
     times = cb['times@dataset@lc'].value
     interp = True
@@ -1118,7 +1138,18 @@ def spec_by_phase_cb(cb, line_list, abund_param_values, io_dict, run_dictionary,
 
         start_time = time.time()
 
-        mesh_vals = {'teffs':teffs, 'loggs':loggs, 'rs':rs, 'mus':mus, 'rvs':rvs, 'viss':viss, 'abs_intens':abs_intens, 'areas':areas, 'ldints':ldints, 'rs_sol':rs_sol}
+        ts = np.around(np.array(teffs) / 1000.0) * 1000.0
+        tls = np.floor(teffs / 1000.0) * 1000.0
+        tus = np.ceil(teffs / 1000.0) * 1000.0
+        w1s = (tus - teffs)/1000.0
+        w2s = (teffs - tls)/1000.0
+        lgs = np.around(loggs*10.) / 10.
+        rads = np.around(rs * 4.0) / 4.0
+
+        if io_dict['rad_bound']:
+            rads = apply_rad_bound(io_dict, rads, ts, lgs)
+
+        mesh_vals = {'teffs':teffs, 'loggs':loggs, 'rs':rs, 'mus':mus, 'rvs':rvs, 'viss':viss, 'abs_intens':abs_intens, 'areas':areas, 'ldints':ldints, 'rs_sol':rs_sol, 'ts':ts, 'tls':tls, 'tus':tus, 'w1s':w1s, 'w2s':w2s, 'lgs':lgs, 'rads':rads}
 
         calc_spec_by_phase(mesh_vals, hjd, model_path, line_list, abund_param_values, lines_dic, io_dict)
         # print time.time() - start_time
@@ -1171,7 +1202,18 @@ def spec_by_phase_b(b, line_list, abund_param_values, io_dict, run_dictionary, m
 
         start_time = time.time()
 
-        mesh_vals = {'teffs':teffs, 'loggs':loggs, 'rs':rs, 'mus':mus, 'rvs':rvs, 'viss':viss, 'abs_intens':abs_intens, 'areas':areas, 'ldints':ldints, 'rs_sol':rs_sol}
+        ts = np.around(np.array(teffs) / 1000.0) * 1000.0
+        tls = np.floor(teffs / 1000.0) * 1000.0
+        tus = np.ceil(teffs / 1000.0) * 1000.0
+        w1s = (tus - teffs)/1000.0
+        w2s = (teffs - tls)/1000.0
+        lgs = np.around(loggs*10.) / 10.
+        rads = np.around(rs * 4.0) / 4.0
+
+        if io_dict['rad_bound']:
+            rads = apply_rad_bound(io_dict, rads, ts, lgs)
+
+        mesh_vals = {'teffs':teffs, 'loggs':loggs, 'rs':rs, 'mus':mus, 'rvs':rvs, 'viss':viss, 'abs_intens':abs_intens, 'areas':areas, 'ldints':ldints, 'rs_sol':rs_sol, 'ts':ts, 'tls':tls, 'tus':tus, 'w1s':w1s, 'w2s':w2s, 'lgs':lgs, 'rads':rads}
 
         calc_spec_by_phase(mesh_vals, hjd, model_path, line_list, abund_param_values, lines_dic, io_dict)
         # print time.time() - start_time
@@ -1213,7 +1255,18 @@ def spec_by_phase_s(s, line_list, abund_param_values, io_dict, run_dictionary, m
 
         start_time = time.time()
 
-        mesh_vals = {'teffs':teffs, 'loggs':loggs, 'rs':rs, 'mus':mus, 'rvs':rvs, 'viss':viss, 'abs_intens':abs_intens, 'areas':areas, 'ldints':ldints, 'rs_sol':rs_sol}
+        ts = np.around(np.array(teffs) / 1000.0) * 1000.0
+        tls = np.floor(teffs / 1000.0) * 1000.0
+        tus = np.ceil(teffs / 1000.0) * 1000.0
+        w1s = (tus - teffs)/1000.0
+        w2s = (teffs - tls)/1000.0
+        lgs = np.around(loggs*10.) / 10.
+        rads = np.around(rs * 4.0) / 4.0
+
+        if io_dict['rad_bound']:
+            rads = apply_rad_bound(io_dict, rads, ts, lgs)
+
+        mesh_vals = {'teffs':teffs, 'loggs':loggs, 'rs':rs, 'mus':mus, 'rvs':rvs, 'viss':viss, 'abs_intens':abs_intens, 'areas':areas, 'ldints':ldints, 'rs_sol':rs_sol, 'ts':ts, 'tls':tls, 'tus':tus, 'w1s':w1s, 'w2s':w2s, 'lgs':lgs, 'rads':rads}
 
         calc_spec_by_phase(mesh_vals, hjd, model_path, line_list, abund_param_values, lines_dic, io_dict)
         # print time.time() - start_time
@@ -1255,7 +1308,18 @@ def spec_by_phase_sb(s, line_list, abund_param_values, io_dict, run_dictionary, 
 
         start_time = time.time()
 
-        mesh_vals = {'teffs':teffs, 'loggs':loggs, 'rs':rs, 'mus':mus, 'rvs':rvs, 'viss':viss, 'abs_intens':abs_intens, 'areas':areas, 'ldints':ldints, 'rs_sol':rs_sol}
+        ts = np.around(np.array(teffs) / 1000.0) * 1000.0
+        tls = np.floor(teffs / 1000.0) * 1000.0
+        tus = np.ceil(teffs / 1000.0) * 1000.0
+        w1s = (tus - teffs)/1000.0
+        w2s = (teffs - tls)/1000.0
+        lgs = np.around(loggs*10.) / 10.
+        rads = np.around(rs * 4.0) / 4.0
+
+        if io_dict['rad_bound']:
+            rads = apply_rad_bound(io_dict, rads, ts, lgs)
+
+        mesh_vals = {'teffs':teffs, 'loggs':loggs, 'rs':rs, 'mus':mus, 'rvs':rvs, 'viss':viss, 'abs_intens':abs_intens, 'areas':areas, 'ldints':ldints, 'rs_sol':rs_sol, 'ts':ts, 'tls':tls, 'tus':tus, 'w1s':w1s, 'w2s':w2s, 'lgs':lgs, 'rads':rads}
 
         calc_spec_by_phase(mesh_vals, hjd, model_path, line_list, abund_param_values, lines_dic, io_dict)
         # print time.time() - start_time
@@ -1306,8 +1370,10 @@ def determine_tgr_combinations(cb, io_dict):
     lgs = np.around(np.array(loggs)*10.) / 10.
     rads = np.around(np.array(rs) * 4.0) / 4.0
     if io_dict['rad_bound']:
-        rads = rads * (rads <= 9.) + 9.*(rads > 9.)
-        rads = rads * (rads >= 6.5) + 6.5*(rads < 6.5)
+        rads = apply_rad_bound(io_dict, rads, ts, lgs)
+    # if io_dict['rad_bound']:
+    #     rads = rads * (rads <= 9.) + 9.*(rads > 9.)
+    #     rads = rads * (rads >= 6.5) + 6.5*(rads < 6.5)
     # lgs = lgs * (lgs >= 3.) + 3.*(lgs < 3.)
     # combinations = ['T' + str(int(ts[i])) + '_G' + str(lgs[i]) + '_R' + format(rads[i], '.2f') for i in range(len(ts))]
     combinations = ['T' + str(int(tls[i])) + '_G' + str(lgs[i]) + '_R' + format(rads[i], '.2f') for i in range(len(ts))]
@@ -1913,13 +1979,14 @@ def main():
     phoebe.mpi.off()
 
     run_checks = False
+    rad_bound = False
     input_file = 'input.txt'
     opts, args = getopt.getopt(sys.argv[1:], 'i:n:bc', ['input=', 'n_cores=', 'bound', 'checks'])
     for opt, arg in opts:
         if opt in ('-i', '--input'):
             input_file = str(arg)
         if opt in ('-b', '--bound'):
-            io_dict['rad_bound'] = True
+            rad_bound = True
         if opt in ('-n', '--n_cores'):
             n_cores = int(str(arg))
         if opt in ('-c', '--checks'):
@@ -1939,6 +2006,7 @@ def main():
 
 
     fit_param_values, abund_param_values, line_list, io_dict = read_input_file(input_file)
+    io_dict['rad_bound'] = rad_bound
     if run_checks == False:
         setup_output_directory(io_dict)
         check_input_spectra(io_dict)
@@ -2006,5 +2074,4 @@ except:
 if __name__ == "__main__":
     main()
 
-# mpiexec -n 2 python PFGS.py
 # python spamms.py -n 2
