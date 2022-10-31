@@ -2065,6 +2065,12 @@ def main():
         except:
             np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s %s', header = 'chi2 teff rotation_rate mass r inclination gamma t0 he c n o run_id run_status')
 
+    run_statuses = [i[-1]=='success' for i in chi_full_array]
+    if np.all(np.array(run_statuses)):
+        print('SPAMMS run finished. \nAll models ran successfully!')
+    else:
+        print('SPAMMS run finished. \nSome models failed to run.')
+
 py_ver = sys.version_info[0]
 try:
     phoebe_ver = float(phoebe.__version__[:3])
