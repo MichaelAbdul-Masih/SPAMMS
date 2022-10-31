@@ -1877,7 +1877,7 @@ def calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictio
                         async_secondary = run_dictionary['async_secondary']
                         gamma = run_dictionary['gamma']
                         run_id = run_dictionary['run_id']
-                        chi2_info = [chi2, fillout_factor, teff_primary, teff_secondary, period, sma, q, inclination, gamma, t0, async_primary, async_secondary, float(he), float(c), float(n), float(o), run_id, 'success']
+                        chi2_info = [chi2, fillout_factor, teff_primary, teff_secondary, period, sma, q, inclination, gamma, t0, async_primary, async_secondary, float(he), float(c), float(n), float(o), run_id, 1]
 
                     elif io_dict['object_type'] == 'binary':
                         r_equiv_primary = run_dictionary['r_equiv_primary']
@@ -1897,7 +1897,7 @@ def calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictio
                         yaw_secondary = run_dictionary['yaw_secondary']
                         gamma = run_dictionary['gamma']
                         run_id = run_dictionary['run_id']
-                        chi2_info = [chi2, r_equiv_primary, r_equiv_secondary, teff_primary, teff_secondary, period, sma, q, inclination, gamma, t0, async_primary, async_secondary, pitch_primary, pitch_secondary, yaw_primary, yaw_secondary, float(he), float(c), float(n), float(o), run_id, 'success']
+                        chi2_info = [chi2, r_equiv_primary, r_equiv_secondary, teff_primary, teff_secondary, period, sma, q, inclination, gamma, t0, async_primary, async_secondary, pitch_primary, pitch_secondary, yaw_primary, yaw_secondary, float(he), float(c), float(n), float(o), run_id, 1]
 
                     elif io_dict['object_type'] == 'single':
                         teff = run_dictionary['teff']
@@ -1925,7 +1925,7 @@ def calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictio
                         else:
                             rotation_rate = run_dictionary['rotation_rate']
                             vsini = run_dictionary['vsini']
-                        chi2_info = [chi2, teff, vsini, rotation_rate, v_crit_frac, mass, r, r_pole, inclination, gamma, t0, float(he), float(c), float(n), float(o), run_id, 'success']
+                        chi2_info = [chi2, teff, vsini, rotation_rate, v_crit_frac, mass, r, r_pole, inclination, gamma, t0, float(he), float(c), float(n), float(o), run_id, 1]
 
                     chi_array.append(chi2_info)
     return chi_array
@@ -1939,23 +1939,23 @@ def PFGS(times, abund_param_values, line_list, io_dict, obs_specs, run_dictionar
         spec_by_phase_cb(cb, line_list, abund_param_values, io_dict, run_dictionary, model_path)
         try:
             if obs_specs == None:
-                chi_array = chi_array = [[9999, run_dictionary['fillout_factor'], run_dictionary['teff_primary'], run_dictionary['teff_secondary'], run_dictionary['period'], run_dictionary['sma'], run_dictionary['q'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], run_dictionary['async_primary'], run_dictionary['async_secondary'], -1, -1, -1, -1, run_dictionary['run_id'], 'success']]
+                chi_array = chi_array = [[9999, run_dictionary['fillout_factor'], run_dictionary['teff_primary'], run_dictionary['teff_secondary'], run_dictionary['period'], run_dictionary['sma'], run_dictionary['q'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], run_dictionary['async_primary'], run_dictionary['async_secondary'], -1, -1, -1, -1, run_dictionary['run_id'], 1]]
             else:
                 chi_array = calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictionary, io_dict, model_path)
         except FileNotFoundError:
             print('\nFileNotFoundError: At least one patch falls outside of the specified grid.  This model will be skipped.  To prevent this in the future, run grid checks first by passing "-c" when running SPAMMS to make sure that all of the models fall within the grid.')
-            chi_array = [[9999, run_dictionary['fillout_factor'], run_dictionary['teff_primary'], run_dictionary['teff_secondary'], run_dictionary['period'], run_dictionary['sma'], run_dictionary['q'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], run_dictionary['async_primary'], run_dictionary['async_secondary'], -1, -1, -1, -1, run_dictionary['run_id'], 'failed']]
+            chi_array = [[9999, run_dictionary['fillout_factor'], run_dictionary['teff_primary'], run_dictionary['teff_secondary'], run_dictionary['period'], run_dictionary['sma'], run_dictionary['q'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], run_dictionary['async_primary'], run_dictionary['async_secondary'], -1, -1, -1, -1, run_dictionary['run_id'], 0]]
     elif io_dict['object_type'] == 'binary':
         try:
             b = run_b_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
             spec_by_phase_b(b, line_list, abund_param_values, io_dict, run_dictionary, model_path)
             if obs_specs == None:
-                chi_array = [[9999, run_dictionary['r_equiv_primary'], run_dictionary['r_equiv_secondary'], run_dictionary['teff_primary'], run_dictionary['teff_secondary'], run_dictionary['period'], run_dictionary['sma'], run_dictionary['q'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], run_dictionary['async_primary'], run_dictionary['async_secondary'], run_dictionary['pitch_primary'], run_dictionary['pitch_secondary'], run_dictionary['yaw_primary'], run_dictionary['yaw_secondary'], -1, -1, -1, -1, run_dictionary['run_id'], 'success']]
+                chi_array = [[9999, run_dictionary['r_equiv_primary'], run_dictionary['r_equiv_secondary'], run_dictionary['teff_primary'], run_dictionary['teff_secondary'], run_dictionary['period'], run_dictionary['sma'], run_dictionary['q'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], run_dictionary['async_primary'], run_dictionary['async_secondary'], run_dictionary['pitch_primary'], run_dictionary['pitch_secondary'], run_dictionary['yaw_primary'], run_dictionary['yaw_secondary'], -1, -1, -1, -1, run_dictionary['run_id'], 1]]
             else:
                 chi_array = calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictionary, io_dict, model_path)
         except FileNotFoundError:
             print('\nFileNotFoundError: At least one patch falls outside of the specified grid.  This model will be skipped.  To prevent this in the future, run grid checks first by passing "-c" when running SPAMMS to make sure that all of the models fall within the grid.')
-            chi_array = [[9999, run_dictionary['r_equiv_primary'], run_dictionary['r_equiv_secondary'], run_dictionary['teff_primary'], run_dictionary['teff_secondary'], run_dictionary['period'], run_dictionary['sma'], run_dictionary['q'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], run_dictionary['async_primary'], run_dictionary['async_secondary'], run_dictionary['pitch_primary'], run_dictionary['pitch_secondary'], run_dictionary['yaw_primary'], run_dictionary['yaw_secondary'], -1, -1, -1, -1, run_dictionary['run_id'], 'failed']]
+            chi_array = [[9999, run_dictionary['r_equiv_primary'], run_dictionary['r_equiv_secondary'], run_dictionary['teff_primary'], run_dictionary['teff_secondary'], run_dictionary['period'], run_dictionary['sma'], run_dictionary['q'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], run_dictionary['async_primary'], run_dictionary['async_secondary'], run_dictionary['pitch_primary'], run_dictionary['pitch_secondary'], run_dictionary['yaw_primary'], run_dictionary['yaw_secondary'], -1, -1, -1, -1, run_dictionary['run_id'], 0]]
     elif io_dict['object_type'] == 'single':
         try:
             if io_dict['distortion'] in ['rotstar']:
@@ -1965,12 +1965,12 @@ def PFGS(times, abund_param_values, line_list, io_dict, obs_specs, run_dictionar
                 s = run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
                 spec_by_phase_sb(s, line_list, abund_param_values, io_dict, run_dictionary, model_path)
             if obs_specs == None:
-                chi_array = [[9999, run_dictionary['teff'], run_dictionary['vsini'], run_dictionary['rotation_rate'], run_dictionary['v_crit_frac'], run_dictionary['mass'], run_dictionary['requiv'], run_dictionary['r_pole'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], -1, -1, -1, -1, run_dictionary['run_id'], 'success']]
+                chi_array = [[9999, run_dictionary['teff'], run_dictionary['vsini'], run_dictionary['rotation_rate'], run_dictionary['v_crit_frac'], run_dictionary['mass'], run_dictionary['requiv'], run_dictionary['r_pole'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], -1, -1, -1, -1, run_dictionary['run_id'], 1]]
             else:
                 chi_array = calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictionary, io_dict, model_path)
         except FileNotFoundError:
             print('\nFileNotFoundError: At least one patch falls outside of the specified grid.  This model will be skipped.  To prevent this in the future, run grid checks first by passing "-c" when running SPAMMS to make sure that all of the models fall within the grid.')
-            chi_array = [[9999, run_dictionary['teff'], run_dictionary['vsini'], run_dictionary['rotation_rate'], run_dictionary['v_crit_frac'], run_dictionary['mass'], run_dictionary['requiv'], run_dictionary['r_pole'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], -1, -1, -1, -1, run_dictionary['run_id'], 'failed']]
+            chi_array = [[9999, run_dictionary['teff'], run_dictionary['vsini'], run_dictionary['rotation_rate'], run_dictionary['v_crit_frac'], run_dictionary['mass'], run_dictionary['requiv'], run_dictionary['r_pole'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['t0'], -1, -1, -1, -1, run_dictionary['run_id'], 0]]
 
     return chi_array
 
@@ -2056,17 +2056,17 @@ def main():
         # print len(chi_full_array)
 
         if io_dict['object_type'] == 'contact_binary':
-            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.3f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.3f %0.2f %0.2f %0.2f %s %s', header = 'chi2 fillout_factor teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary he c n o run_id run_status')
+            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.3f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.3f %0.2f %0.2f %0.2f %s %s', header = 'chi2 fillout_factor teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary he c n o run_id run_success')
         elif io_dict['object_type'] == 'binary':
-            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.2f %0.2f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.1f %0.1f %0.1f %0.1f %0.2f %0.2f %0.2f %0.2f %s %s', header = 'chi2 r_equiv_primary r_equiv_secondary teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary pitch_primary pitch_secondary yaw_primary yaw_secondary he c n o run_id run_status')
+            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.2f %0.2f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.1f %0.1f %0.1f %0.1f %0.2f %0.2f %0.2f %0.2f %s %s', header = 'chi2 r_equiv_primary r_equiv_secondary teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary pitch_primary pitch_secondary yaw_primary yaw_secondary he c n o run_id run_success')
     if io_dict['object_type'] == 'single':
-        try:
-            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.4f %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s %s', header = 'chi2 teff vsini rotation_rate v_crit_frac mass r r_pole inclination gamma t0 he c n o run_id run_status')
-        except:
-            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s %s', header = 'chi2 teff rotation_rate mass r inclination gamma t0 he c n o run_id run_status')
+        # try:
+        np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.4f %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %i %i', header = 'chi2 teff vsini rotation_rate v_crit_frac mass r r_pole inclination gamma t0 he c n o run_id run_success')
+        # except:
+        #     np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %s %s', header = 'chi2 teff rotation_rate mass r inclination gamma t0 he c n o run_id run_success')
 
-    run_statuses = [i[-1]=='success' for i in chi_full_array]
-    if np.all(np.array(run_statuses)):
+    run_successes = [i[-1]==1 for i in chi_full_array]
+    if np.all(np.array(run_successes)):
         print('SPAMMS run finished. \nAll models ran successfully!')
     else:
         print('SPAMMS run finished. \nSome models failed to run.')
