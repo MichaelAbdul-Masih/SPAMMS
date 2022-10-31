@@ -9,5 +9,5 @@ Outputs/*
 !Outputs/plot_chi2_minimization.py
 !Grids/
 Grids/*
-!Grids/Test_Grid
+!Grids/Test_Grid/
 !Grids/.gitkeep
