@@ -6,15 +6,15 @@ SPAMMS stands for Spectroscopic PAtch Model for Massive Stars and is designed wi
 
 Installation
 ------------
-*   SPAMMS is written in python 2.7 but in a future release, we will support python 3.7 as well.
-
 *   Clone the git repository to create a local copy.
 
         $ git clone https://github.com/MichaelAbdul-Masih/SPAMMS.git
 
-*   SPAMMS relies heavily on PHOEBE 2 so you will need to download PHOEBE 2 as well.  Instructions for installation can be found at http://phoebe-project.org/
+*   SPAMMS is written in Python 3 and has several dependencies that are needed to make it run.  For your convenience, we have provided an environment file (SPAMMS_environment.yml), which you can use to create an environment that already has all of these dependencies.  If you are using Anaconda you can create the environment as follows:
 
-*   Minimum package dependencies include:
+        conda env create -f SPAMMS_environment.yml
+
+*   If you prefer to create the environment yourself, the minimum package requirements can be found below:
 
         astropy 2.0.12
         numpy 1.16.3
@@ -22,10 +22,17 @@ Installation
         schwimmbad 0.3.0
         scipy 1.2.0
         tqdm 4.31.1
-
+        phoebe 2.3.0
 
 Getting Started
 ---------------
+### Test the Installation
+To make sure the installation was successful, cd into the SPAMMS git directory and run the following command:
+
+        python spamms.py -i input.txt
+
+If the final message you get from the run is 'All models ran successfully!' then SPAMMS has been installed successfully.
+
 ### Input file
 SPAMMS works by referring to an input file (input.txt) which contains all of the settings.  There are separate input files for single star systems, detached binary systems and contact binary systems, as they contain different arguments.  These input files are broken up into 5 sections:
 
