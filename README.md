@@ -12,6 +12,7 @@ Installation
 
 *   SPAMMS is written in Python 3 and has several dependencies that are needed to make it run.  For your convenience, we have provided an environment file (SPAMMS_environment.yml), which you can use to create an environment that already has all of these dependencies.  If you are using Anaconda you can create the environment as follows:
 
+        cd SPAMMS/
         conda env create -f SPAMMS_environment.yml
 
 *   If you prefer to create the environment yourself, the minimum package requirements can be found below:
@@ -24,8 +25,6 @@ Installation
         tqdm 4.31.1
         phoebe 2.3.0
 
-Getting Started
----------------
 ### Test the Installation
 To make sure the installation was successful, cd into the SPAMMS git directory and run the following command:
 
@@ -33,6 +32,9 @@ To make sure the installation was successful, cd into the SPAMMS git directory a
 
 If the final message you get from the run is 'All models ran successfully!' then SPAMMS has been installed successfully.
 
+
+Getting Started
+---------------
 ### Input file
 SPAMMS works by referring to an input file (input.txt) which contains all of the settings.  There are separate input files for single star systems, detached binary systems and contact binary systems, as they contain different arguments.  These input files are broken up into 5 sections:
 
