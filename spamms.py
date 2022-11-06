@@ -352,7 +352,7 @@ def get_obs_spec_and_times(io_dict):
             times_temp = np.loadtxt(spec_file[:-8] + 'hjd.txt', ndmin=1)
             for i in range(len(f)):
                 dic = {'wavelength':w, 'flux':f[i]}
-                obs_specs[str(times_temp[i]).ljust(13, '0')] = dic
+                obs_specs[str(round(times_temp[i], 13)).ljust(13, '0')] = dic
         return np.array(times), obs_specs
 
 
@@ -1790,7 +1790,7 @@ def calc_chi2_per_model_new(line_list, abund_param_values, obs_specs, run_dictio
     line_bounds = settings.line_bounds()
     abund_dic = settings.abundance_dictionary()
 
-    abunds = glob.glob(model_path + '/*')
+    abunds = glob.glob(model_path + '/He*')
     he_abunds = list(set([i.split('/')[-1].split('_')[0].strip('He') for i in abunds]))
     he_abunds.sort()
     c_abunds = n_abunds = o_abunds = list(set([i.split('/')[-1].split('_')[1].strip('CNO') for i in abunds]))
@@ -2052,13 +2052,13 @@ def main():
     for i in chi2:
         chi_full_array.extend(i)
 
-    if obs_specs != None:
-        # print len(chi_full_array)
-
-        if io_dict['object_type'] == 'contact_binary':
-            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.3f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.3f %0.2f %0.2f %0.2f %s %s', header = 'chi2 fillout_factor teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary he c n o run_id run_success')
-        elif io_dict['object_type'] == 'binary':
-            np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.2f %0.2f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.1f %0.1f %0.1f %0.1f %0.2f %0.2f %0.2f %0.2f %s %s', header = 'chi2 r_equiv_primary r_equiv_secondary teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary pitch_primary pitch_secondary yaw_primary yaw_secondary he c n o run_id run_success')
+    # if obs_specs != None:
+    #     # print len(chi_full_array)
+    #
+    if io_dict['object_type'] == 'contact_binary':
+        np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.3f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.3f %0.2f %0.2f %0.2f %i %i', header = 'chi2 fillout_factor teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary he c n o run_id run_success')
+    elif io_dict['object_type'] == 'binary':
+        np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %0.2f %0.2f %d %d %f %0.2f %0.2f %0.1f %0.1f %0.3f %0.2f %0.2f %0.1f %0.1f %0.1f %0.1f %0.2f %0.2f %0.2f %0.2f %i %i', header = 'chi2 r_equiv_primary r_equiv_secondary teff_primary teff_secondary period sma q inclination gamma t0 async_primary async_secondary pitch_primary pitch_secondary yaw_primary yaw_secondary he c n o run_id run_success')
     if io_dict['object_type'] == 'single':
         # try:
         np.savetxt(io_dict['output_directory'] + 'chi_square_summary.txt', np.array(chi_full_array), fmt='%f %d %0.1f %0.1f %0.4f %0.1f %0.1f %0.2f %0.1f %0.1f %0.3f %0.3f %0.2f %0.2f %0.2f %i %i', header = 'chi2 teff vsini rotation_rate v_crit_frac mass r r_pole inclination gamma t0 he c n o run_id run_success')
