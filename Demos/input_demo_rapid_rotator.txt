@@ -1,0 +1,23 @@
+object_type = single
+
+path_to_obs_spectra = None
+output_directory = Outputs/Demo_rapid_rotator/
+path_to_grid = Grids/Demo_Grid/
+times = [0.0]
+
+
+teff =                40000
+r_pole =              6.0
+mass =                25
+inclination =         90
+v_crit_frac =         [0.995, 0.9, 0.7, 0.5, 0.25, 0.01]
+t0 =                  0.000
+distortion =          roche
+gamma =               0
+
+he_abundances =       [0.1]
+cno_abundances =      [7.5]
+lp_bins =             161
+
+selected_he_line_list = ['HEI4471', 'HEII4541']
+selected_line_list = ['CIII4069', 'CIII4187', 'HDELTA', 'HEI4026', 'HEI4121', 'HEI4143', 'HEI4387', 'HEI4471', 'HEII4200', 'HEII4541', 'HEPS', 'HGAMMA', 'NIII4379', 'NIIIqua', 'NIIItrip', 'NIV4058']

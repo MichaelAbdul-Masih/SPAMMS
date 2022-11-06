@@ -1,20 +1,22 @@
-object_type = contact_binary
+object_type = single
 
-path_to_obs_spectra = Input_Spectra/VFTS_352/
-output_directory = Outputs/VFTS_352/
-path_to_grid = Grids/LMC_Grid/
+path_to_obs_spectra = None
+output_directory = Outputs/Test/
+path_to_grid = Grids/Test_Grid/
+times = [0.0]
 
 
-fillout_factor =      0.29
-teff_primary =        44000
-teff_secondary =      41400
-period =              1.1241452
-sma =                 17.55
-inclination =         55.6
-q =                   1.01
-t0 =                  2455261.119
-async_primary =       1.0
-async_secondary =     1.0
-gamma =               262.8
+teff =                40000
+r_pole =              6.0
+mass =                25
+inclination =         90
+v_crit_frac =         0
+t0 =                  0.000
+distortion =          sphere
+gamma =               0
+
+he_abundances =       [0.1]
+cno_abundances =      [7.5]
+lp_bins =             161
 
 selected_line_list = ['HEI4471', 'HEII4541']

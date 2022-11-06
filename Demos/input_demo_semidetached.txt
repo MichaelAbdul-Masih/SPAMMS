@@ -1,0 +1,33 @@
+object_type = binary
+
+path_to_obs_spectra = None
+output_directory = Outputs/Demo_semidetached/
+path_to_grid = Grids/Demo_Grid/
+times = (0, 1.75, 31)
+
+
+r_equiv_primary =     6.25
+r_equiv_secondary =   7.25
+teff_primary =        35000
+teff_secondary =      35000
+period =              1.75
+sma =                 21
+inclination =         [90, 70, 50]
+q =                   0.75
+t0 =                  0
+async_primary =       1.0
+async_secondary =     1.0
+pitch_primary =       0
+pitch_secondary =     0
+yaw_primary =         0
+yaw_secondary =       0
+
+gamma =               0
+
+
+he_abundances =       [0.1]
+cno_abundances =      [7.5]
+lp_bins =             161
+
+selected_he_line_list = ['HEI4471', 'HEII4541']
+selected_line_list = ['CIII4069', 'CIII4187', 'HDELTA', 'HEI4026', 'HEI4121', 'HEI4143', 'HEI4387', 'HEI4471', 'HEII4200', 'HEII4541', 'HEPS', 'HGAMMA', 'NIII4379', 'NIIIqua', 'NIIItrip', 'NIV4058']
