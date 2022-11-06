@@ -8,12 +8,13 @@ Installation
 ------------
 *   Clone the git repository to create a local copy.
 
-        $ git clone https://github.com/MichaelAbdul-Masih/SPAMMS.git
+        git clone https://github.com/MichaelAbdul-Masih/SPAMMS.git
 
 *   SPAMMS is written in Python 3 and has several dependencies that are needed to make it run.  For your convenience, we have provided an environment file (SPAMMS_environment.yml), which you can use to create an environment that already has all of these dependencies.  If you are using Anaconda you can create the environment as follows:
 
         cd SPAMMS/
         conda env create -f SPAMMS_environment.yml
+        conda activate SPAMMS_env
 
 *   If you prefer to create the environment yourself, the minimum package requirements can be found below:
 
