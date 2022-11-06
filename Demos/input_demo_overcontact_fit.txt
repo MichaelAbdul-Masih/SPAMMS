@@ -1,0 +1,26 @@
+object_type = contact_binary
+
+path_to_obs_spectra = Input_Spectra/Demo_overcontact/
+output_directory = Outputs/Demo_overcontact_fit/
+path_to_grid = Grids/Demo_Grid/
+
+
+
+fillout_factor =      0.29
+teff_primary =        (40000, 45000, 11)
+teff_secondary =      (37000, 42000, 11)
+period =              1.1241452
+sma =                 17.0
+inclination =         55.6
+q =                   1.01
+t0 =                  0
+async_primary =       1.0
+async_secondary =     1.0
+gamma =               0
+
+he_abundances =       [0.1]
+cno_abundances =      [7.5]
+lp_bins =             161
+
+selected_line_list = ['HEI4471', 'HEII4541']
+selected_all_line_list = ['CIII4069', 'CIII4187', 'HDELTA', 'HEI4026', 'HEI4121', 'HEI4143', 'HEI4387', 'HEI4471', 'HEII4200', 'HEII4541', 'HEPS', 'HGAMMA', 'NIII4379', 'NIIIqua', 'NIIItrip', 'NIV4058']

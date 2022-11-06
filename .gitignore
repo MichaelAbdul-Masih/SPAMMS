@@ -1,7 +1,7 @@
 */
 !Input_Spectra/
 Input_Spectra/*
-!Input_Spectra/VFTS_352
+!Input_Spectra/Demo_overcontact
 !Input_Spectra/.gitkeep
 !Outputs/
 Outputs/*
@@ -11,3 +11,5 @@ Outputs/*
 Grids/*
 !Grids/Test_Grid
 !Grids/.gitkeep
+!Demo/
+!Demo/.gitkeep
