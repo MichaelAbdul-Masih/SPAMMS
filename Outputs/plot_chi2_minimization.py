@@ -165,21 +165,40 @@ for param in fit_params:
 
 cols = np.ceil(np.sqrt(len(fit_params)))
 rows = np.ceil(len(fit_params) / cols)
-fig, axs = plt.subplots(int(rows), int(cols), sharey=True, figsize = (8, 6))
+fig, axs = plt.subplots(int(rows), int(cols), sharey=True, figsize = (8*int(cols), 6*int(rows)))
+print(axs.shape)
 for ind, param in enumerate(fit_params):
     c = int(ind%cols)
     r = int(np.floor(ind/cols))
-    axs[r][c].scatter(data[param], data['chi2'], c = 'black', alpha=0.5, s = 4)
-    if r == 0:
-        axs[r][c].set_ylabel('Chi square')
-    axs[r][c].set_xlabel(param)
-    axs[r][c].plot(fit_param_range[param], fit_param_interp[param](fit_param_range[param]), 'k:', alpha=0.8, lw=1)
-    axs[r][c].plot(fit_param_range[param], np.ones_like(fit_param_range[param])*fit_param_sig[param], 'r')
+    if rows > 1:
+        axs[r][c].scatter(data[param], data['chi2'], c = 'black', alpha=0.5, s = 4)
+        if r == 0:
+            axs[r][c].set_ylabel('Chi square')
+        axs[r][c].set_xlabel(param)
+        axs[r][c].plot(fit_param_range[param], fit_param_interp[param](fit_param_range[param]), 'k:', alpha=0.8, lw=1)
+        axs[r][c].plot(fit_param_range[param], np.ones_like(fit_param_range[param])*fit_param_sig[param], 'r')
+    elif cols > 1:
+        axs[c].scatter(data[param], data['chi2'], c = 'black', alpha=0.5, s = 4)
+        axs[c].set_ylabel('Chi square')
+        axs[c].set_xlabel(param)
+        axs[c].plot(fit_param_range[param], fit_param_interp[param](fit_param_range[param]), 'k:', alpha=0.8, lw=1)
+        axs[c].plot(fit_param_range[param], np.ones_like(fit_param_range[param])*fit_param_sig[param], 'r')
+    else:
+        axs.scatter(data[param], data['chi2'], c = 'black', alpha=0.5, s = 4)
+        axs.set_ylabel('Chi square')
+        axs.set_xlabel(param)
+        axs.plot(fit_param_range[param], fit_param_interp[param](fit_param_range[param]), 'k:', alpha=0.8, lw=1)
+        axs.plot(fit_param_range[param], np.ones_like(fit_param_range[param])*fit_param_sig[param], 'r')
 
 for ind in range(len(fit_params), int(rows*cols)):
     c = int(ind%cols)
     r = int(np.floor(ind/cols))
-    axs[r][c].axis('off')
+    if rows > 1:
+        axs[r][c].axis('off')
+    elif cols > 1:
+        axs[c].axis('off')
+    else:
+        axs.axis('off')
 
 plt.subplots_adjust(top=0.935, bottom=0.095, left=0.11, right=0.9, hspace=0.22, wspace=0.2)
 plt.show()
