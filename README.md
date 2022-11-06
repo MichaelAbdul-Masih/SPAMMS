@@ -62,8 +62,13 @@ SPAMMS works by referring to an input file (input.txt) which contains all of the
 
 *   Selected line list: This specifies which lines you wish to compute.  A full line list for the LMC computed grid can be found in the settings.py script.
 
+### Input spectra
+If you wish to compare SPAMMS synthetic line profiles with observed spectra, SPAMMS has the ability to do so built in.  By providing the path to a folder containing the input spectra and corresponding times, SPAMMS will generate line profiles corresponding to the times provided and calculate the total chi-square for each combination of parameters specified in the input file.
+
+The folder itself must contain two files, one corresponding to the times of observation and one corresponding to the spectra.  SPAMMS requires that these files be named with the same base name and a specific extension for each file (i.e., BASENAME_hjd.txt and BASENAME_spec.txt).  The times file (BASENAME_hjd.txt) should contain a list of times with the same format that is used for the t0 in the input file.  The spectra file (BASENAME_spec.txt) should contain one wavelength column and then several spectra columns corresponding to the number of times in the BASENAME_hjd.txt file.  It is assumed that the wavelength arrays for each of the spectra are identical.  In instances where this is not the case, several pairs of _spec.txt and _hjd.txt files can be provided.
+
 ### FASTWIND Grid
-Before using the code, an input grid will need to be either downloaded or created. A grid has been computed for the LMC and is available on request (michael.abdulmasih@gmail.com).  In a future release, we plan to make the input grid calculation scripts available.
+Before using the code, an input grid will need to be either downloaded or created. A large grid has been computed for the LMC and is available on request (michael.abdulmasih@gmail.com).  Alternatively, a smaller (~12GB, ~5.5GB in tar format) demo grid is also available to get started with the code (https://www.dropbox.com/s/cclg8en16n1qkmc/Demo_Grid.tar.gz?dl=0).  In a future release, we plan to make the input grid calculation scripts available.
 
 ### Running the code
 SPAMMS can be run on a single core or on multiple cores by passing the '-n' flag followed by the number of cores you wish to use.  SPAMMS is parallelized on a model basis meaning that when running a grid of models with different input parameters, each can be run on a different core.  Currently, it is not possible to parallelize based on the time points for a given model.  By default, SPAMMS uses input.txt as the input file but this can be changed using the '-i' flag and specifying your chosen input file. Before running SPAMMS, it is advised to run a grid check to make sure that your model does not fall out of the bounds of the grid.  This can be done by passing the '-c' flag.  An example call can be found below:
@@ -73,3 +78,19 @@ SPAMMS can be run on a single core or on multiple cores by passing the '-n' flag
 
         $ python spamms.py -i input.txt
         $ python spamms.py -i input.txt -n 4
+
+
+Example input files and Jupyter notebooks
+---------------
+In the Demo folder, we have provided 4 example input files for different types of systems.  This is a great place to start if you are a new user.  These input files all use the demo grid discussed in the previous section, so make sure that it is downloaded and in the Grids/ folder before running them.  We recommend copying each of the files into the main SPAMMS folder and running them there to preserve the originals for future reference.  In order of increasing complexity, the input files are:
+
+*   input_demo_rapid_rotator.txt: Here we demonstrate how to model a rapidly rotating single star at different rotation rates
+
+*   input_demo_semidetached.txt: Here we demonstrate how to model a semidetached binary at different times.
+
+*   input_demo_Rossiter-McLaughlin.txt: Here we show an example of how SPAMMS can model the Rossiter-McLaughlin effect
+
+*   input_demo_overcontact_fit.txt: Here we demonstrate how you can use SPAMMS to fit observed spectra.  In this case, we simulated an overcontact binary using SPAMMS, added noise and degraded the spectra to XSHOOTER resolution (R = 6700) to form the "observed" spectra.
+
+
+In addition to the sample input files, we've also included two jupyter notebooks, which demonstrate how to handle and work with the SPAMMS outputs.  The first shows how to access and plot the line profiles and uses the output from the input_demo_rapid_rotator.txt for this example.  The second shows how to create animations using a combination of the line profile outputs from SPAMMS and the geometry information generated using PHOEBE 2.  This notebook uses the output generated from the input_demo_semidetached.txt file to create the animation.
