@@ -1,4 +1,4 @@
-# SPAMMS 1.0.dev
+# SPAMMS 1.1.0
 
 Introduction
 ------------
