@@ -7,8 +7,8 @@ path_to_grid = Grids/Demo_Grid/
 
 
 fillout_factor =      0.29
-teff_primary =        (40000, 45000, 11)
-teff_secondary =      (37000, 42000, 11)
+teff_primary =        (40000, 45000, 3)
+teff_secondary =      (37000, 42000, 3)
 period =              1.1241452
 sma =                 17.0
 inclination =         55.6
