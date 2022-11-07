@@ -1,4 +1,4 @@
-# SPAMMS 1.1.0
+# SPAMMS 1.1.1
 
 Introduction
 ------------
@@ -20,7 +20,7 @@ Installation
 
         astropy 2.0.12
         numpy 1.16.3
-        phoebe 2.1.15
+        matplotlib 3.6.1
         schwimmbad 0.3.0
         scipy 1.2.0
         tqdm 4.31.1
