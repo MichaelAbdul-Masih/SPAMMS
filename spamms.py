@@ -1340,6 +1340,19 @@ def spec_by_phase_sb(s, line_list, abund_param_values, io_dict, run_dictionary, 
         # print time.time() - start_time
 
 
+def cartesian_to_spherical(x, y, z, x_c = 0, y_c = 0, z_c = 0):
+    x -= x_c
+    y -= y_c
+    z -= z_c
+
+    r = np.sqrt(x**2 + y**2 + z**2)
+    theta = np.arccos(np.abs(z) / r)
+    theta -= (theta > np.pi) * np.pi
+    phi = np.arctan(y/x)
+
+    return r, theta, phi
+
+
 def interpolate_psi_grid(v_linear_percent_crit):
     psi_grid = np.load('psi_grid.npy')
 
