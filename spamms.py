@@ -1353,16 +1353,20 @@ def cartesian_to_spherical(x, y, z, x_c = 0, y_c = 0, z_c = 0):
     return r, theta, phi
 
 
-def interpolate_psi_grid(v_linear_percent_crit):
+def interpolate_psi_grid(v_linear_crit_frac):
     psi_grid = np.load('psi_grid.npy')
+    v_linear_percent_crit = v_linear_crit_frac * 100
 
-    v_upper = int(np.ceil(v_linear_percent_crit*100))
-    v_lower = int(np.floor(v_linear_percent_crit*100))
+    if (v_linear_percent_crit).is_integer():
+        psis = psi_grid[int(v_linear_percent_crit)]
+    else:
+        v_upper = int(np.ceil(v_linear_percent_crit))
+        v_lower = int(np.floor(v_linear_percent_crit))
 
-    weight_lower = v_upper - v_linear_percent_crit*100
-    weight_upper = v_linear_percent_crit*100 - v_lower
+        weight_lower = v_upper - v_linear_percent_crit
+        weight_upper = v_linear_percent_crit - v_lower
 
-    psis = psi_grid[v_upper] * weight_upper + psi_grid[v_lower] * weight_lower
+        psis = psi_grid[v_upper] * weight_upper + psi_grid[v_lower] * weight_lower
     return psis
 
 
