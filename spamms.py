@@ -1293,7 +1293,7 @@ def spec_by_phase_sb(s, line_list, abund_param_values, io_dict, run_dictionary, 
 
     for hjd in times:
         s_t = s['%09.6f'%hjd]
-        if run_dictionary['gravity_darkening'] == 'EL':
+        if io_dict['gravity_darkening'] == 'EL':
             teffs = Espinosa_Lara_2011_gd_grid(s, s_t, run_dictionary)
         else:
             teffs = s_t['teffs@primary'].get_value()
