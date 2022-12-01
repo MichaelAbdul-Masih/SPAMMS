@@ -1433,9 +1433,9 @@ def determine_tgr_combinations(cb, io_dict, run_dictionary):
                 logg = phcb['loggs@primary'].get_value()
                 r = phcb['rs@primary'].get_value()
                 if io_dict['gravity_darkening'] == 'EL':
-                    teffs = Espinosa_Lara_2011_gd_grid(cb, phcb, run_dictionary)
+                    teff = Espinosa_Lara_2011_gd_grid(cb, phcb, run_dictionary)
                 else:
-                    teffs = phcb['teffs@primary'].get_value()
+                    teff = phcb['teffs@primary'].get_value()
                 # teff = phcb['teffs@primary'].get_value()
                 teffs.extend(teff)
                 loggs.extend(logg)
