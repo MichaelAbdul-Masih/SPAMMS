@@ -208,13 +208,22 @@ def read_s_input_file(input_file):
     except:
         dist = 'rotstar'
 
+    try:
+        gd_ind = [i for i in range(len(lines)) if lines[i].startswith('gravity_darkening')][0]
+        gd = lines[gd_ind].split('=')[1].strip()
+        if gd not in ['VZ', 'EL']:
+            gd = 'VZ'
+    except:
+        gd = 'VZ'
+
+
     fit_params = ['teff', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
     fit_params_alt = ['teff', 'vsini', 'rotation_rate', 'v_crit_frac', 'requiv', 'r_pole', 'inclination', 'mass', 't0', 'gamma']
     abundance_params = ['he_abundances', 'cno_abundances']
 
     fit_param_values = {}
     abund_param_values = {}
-    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'distortion':dist, 'rad_bound':False}
+    io_dict = {'object_type':object_type, 'ntriangles':ntriangles, 'path_to_obs_spectra':path_to_obs_spectra, 'output_directory':output_directory, 'path_to_grid':path_to_grid, 'input_file':input_file, 'distortion':dist, 'gravity_darkening':gd, 'rad_bound':False}
     try:
         times_ind = [i for i in range(len(lines)) if lines[i].startswith('times')][0]
         times = lines[times_ind].split('=')[1].strip()
@@ -530,7 +539,7 @@ def run_cb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     cb.flip_constraint('t0_ref@binary', 't0_supconj')
     cb['t0_ref@binary@component'].set_value(value = run_dictionary['t0'])
 
-    cb['columns'] = ['*@lc01', '*@rv01', 'us', 'vs', 'ws', 'vus', 'vvs', 'vws', 'loggs', 'teffs', 'mus', 'visibilities', 'rs', 'areas']
+    cb['columns'] = ['*@lc01', '*@rv01', 'us', 'vs', 'ws', 'vus', 'vvs', 'vws', 'xs', 'ys', 'zs', 'vxs', 'vys', 'vzs', 'loggs', 'teffs', 'mus', 'visibilities', 'rs', 'areas']
     cb.run_compute()
 
     execution_time = time.time() - start_time_prog_1
@@ -585,7 +594,7 @@ def run_b_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     b.flip_constraint('t0_ref@binary', 't0_supconj')
     b['t0_ref@binary@component'].set_value(value = run_dictionary['t0'])
 
-    b['columns'] = ['*@lc01', '*@rv01', 'us', 'vs', 'ws', 'vus', 'vvs', 'vws', 'loggs', 'teffs', 'mus', 'visibilities', 'rs', 'areas']
+    b['columns'] = ['*@lc01', '*@rv01', 'us', 'vs', 'ws', 'vus', 'vvs', 'vws', 'xs', 'ys', 'zs', 'vxs', 'vys', 'vzs', 'loggs', 'teffs', 'mus', 'visibilities', 'rs', 'areas']
     b.run_compute()
 
     execution_time = time.time() - start_time_prog_1
@@ -682,7 +691,7 @@ def run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     s['include_times'] = 't0@system'
     s['t0@system'].set_value(value = run_dictionary['t0'])
 
-    s['columns'] = ['*@lc01', '*@rv01', 'us', 'vs', 'ws', 'vus', 'vvs', 'vws', 'loggs', 'teffs', 'mus', 'visibilities', 'rs', 'areas']
+    s['columns'] = ['*@lc01', '*@rv01', 'us', 'vs', 'ws', 'vus', 'vvs', 'vws', 'xs', 'ys', 'zs', 'vxs', 'vys', 'vzs', 'loggs', 'teffs', 'mus', 'visibilities', 'rs', 'areas']
     s.run_compute()
 
     execution_time = time.time() - start_time_prog_1
@@ -789,7 +798,7 @@ def run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     b.flip_constraint('t0_ref@binary', 't0_supconj')
     b['t0_ref@binary@component'].set_value(value = -24999999)
 
-    b['columns'] = ['*@lc01', '*@rv01', 'us', 'vs', 'ws', 'vus', 'vvs', 'vws', 'loggs', 'teffs', 'mus', 'visibilities', 'rs', 'areas']
+    b['columns'] = ['*@lc01', '*@rv01', 'us', 'vs', 'ws', 'vus', 'vvs', 'vws', 'xs', 'ys', 'zs', 'vxs', 'vys', 'vzs', 'loggs', 'teffs', 'mus', 'visibilities', 'rs', 'areas']
     b.run_compute()
 
     execution_time = time.time() - start_time_prog_1
@@ -1284,7 +1293,10 @@ def spec_by_phase_sb(s, line_list, abund_param_values, io_dict, run_dictionary, 
 
     for hjd in times:
         s_t = s['%09.6f'%hjd]
-        teffs = s_t['teffs@primary'].get_value()
+        if run_dictionary['gravity_darkening'] == 'EL':
+            teffs = Espinosa_Lara_2011_gd_grid(s, s_t, run_dictionary)
+        else:
+            teffs = s_t['teffs@primary'].get_value()
         loggs = s_t['loggs@primary'].get_value()
         xs = s_t['us@primary'].get_value()
         ys = s_t['vs@primary'].get_value()
@@ -1327,6 +1339,47 @@ def spec_by_phase_sb(s, line_list, abund_param_values, io_dict, run_dictionary, 
         calc_spec_by_phase(mesh_vals, hjd, model_path, line_list, abund_param_values, lines_dic, io_dict)
         # print time.time() - start_time
 
+
+def interpolate_psi_grid(v_linear_percent_crit):
+    psi_grid = np.load('psi_grid.npy')
+
+    v_upper = int(np.ceil(v_linear_percent_crit*100))
+    v_lower = int(np.floor(v_linear_percent_crit*100))
+
+    weight_lower = v_upper - v_linear_percent_crit*100
+    weight_upper = v_linear_percent_crit*100 - v_lower
+
+    psis = psi_grid[v_upper] * weight_upper + psi_grid[v_lower] * weight_lower
+    return psis
+
+
+def Espinosa_Lara_2011_gd_grid(s_full, s, run_dictionary):
+
+    loggs = s['loggs@primary'].get_value()
+    # grab total surface area
+    areas = s['areas@primary'].get_value()
+    area = np.sum(areas)
+
+    # grab r, theta, phi
+    x = s['xs@primary'].get_value()
+    y = s['zs@primary'].get_value()
+    z = s['ys@primary'].get_value()
+
+    x_c = s_full['xs@orb@primary'].get_value()[0]
+    y_c = s_full['zs@orb@primary'].get_value()[0]
+    z_c = s_full['ys@orb@primary'].get_value()[0]
+
+    rs, thetas, phis = cartesian_to_spherical(x, y, z, x_c, y_c, z_c)
+
+    # calculate psi
+    psis_grid = interpolate_psi_grid(run_dictionary['v_crit_frac'])
+    thetas_grid = np.load('theta_grid.npy')
+    psis = np.interp(thetas, thetas_grid, psis_grid)
+
+#     Ts = (T_eff**4 * area / (4 * np.pi * r_equator**2))**(1./4.) * (1/r_prime**4 + w**4 * r_prime**2 * np.sin(thetas)**2 - 2 * w**2 * np.sin(thetas)**2 / r_prime)**(1./8.) * np.sqrt(np.tan(psis)/np.tan(thetas))
+    Ts = (run_dictionary['teff']**4 * area / (4 * np.pi * c.G.to('solRad3/(solMass s2)').value * run_dictionary['mass']))**(1./4.) * np.sqrt(np.tan(psis)/np.tan(thetas)) * (10**loggs / c.R_sun.to('cm').value)**(1./4.)
+
+    return Ts
 
 
 def determine_tgr_combinations(cb, io_dict):
