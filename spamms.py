@@ -1379,8 +1379,8 @@ def Espinosa_Lara_2011_gd_grid(s_full, s, run_dictionary):
 
     # grab r, theta, phi
     x = s['xs@primary'].get_value()
-    y = s['zs@primary'].get_value()
-    z = s['ys@primary'].get_value()
+    y = s['ys@primary'].get_value()
+    z = s['zs@primary'].get_value()
 
     # x_c = s_full['xs@orb@primary'].get_value()[0]
     # y_c = s_full['zs@orb@primary'].get_value()[0]
