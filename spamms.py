@@ -1365,9 +1365,13 @@ def Espinosa_Lara_2011_gd_grid(s_full, s, run_dictionary):
     y = s['zs@primary'].get_value()
     z = s['ys@primary'].get_value()
 
-    x_c = s_full['xs@orb@primary'].get_value()[0]
-    y_c = s_full['zs@orb@primary'].get_value()[0]
-    z_c = s_full['ys@orb@primary'].get_value()[0]
+    # x_c = s_full['xs@orb@primary'].get_value()[0]
+    # y_c = s_full['zs@orb@primary'].get_value()[0]
+    # z_c = s_full['ys@orb@primary'].get_value()[0]
+
+    x_c = 0
+    y_c = 0
+    z_c = 0
 
     rs, thetas, phis = cartesian_to_spherical(x, y, z, x_c, y_c, z_c)
 
