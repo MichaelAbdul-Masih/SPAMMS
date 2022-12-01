@@ -337,7 +337,7 @@ def check_grid(times, abund_param_values, io_dict, grid_entries, run_dictionary)
             cb = run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
         else:
             cb = run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
-    combs, mode_combs = determine_tgr_combinations(cb, io_dict)
+    combs, mode_combs = determine_tgr_combinations(cb, io_dict, run_dictionary)
 
     missing_combs = [i for i in combs if i not in grid_entries]
     return missing_combs
@@ -1091,7 +1091,7 @@ def spec_by_phase_cb(cb, line_list, abund_param_values, io_dict, run_dictionary,
     times = cb['times@dataset@lc'].value
     interp = True
 
-    combs, mode_combs = determine_tgr_combinations(cb, io_dict)
+    combs, mode_combs = determine_tgr_combinations(cb, io_dict, run_dictionary)
     grid = glob.glob(io_dict['path_to_grid'] + 'T*')
     grid_entries = [i.split('/')[-1] for i in grid]
     missing_combs = [i for i in combs if i not in grid_entries]
@@ -1171,7 +1171,7 @@ def spec_by_phase_b(b, line_list, abund_param_values, io_dict, run_dictionary, m
     times = b['times@dataset@lc'].value
     interp = True
 
-    combs, mode_combs = determine_tgr_combinations(b, io_dict)
+    combs, mode_combs = determine_tgr_combinations(b, io_dict, run_dictionary)
     lines_dic = interp_line_dictionary_structure_new(combs, line_list, io_dict, mode_combs, abund_param_values)
     # lines_dic = line_dictionary_structure(combs, line_list, io_dict)
     # if interp:
@@ -1234,7 +1234,7 @@ def spec_by_phase_b(b, line_list, abund_param_values, io_dict, run_dictionary, m
 def spec_by_phase_s(s, line_list, abund_param_values, io_dict, run_dictionary, model_path):
     times = s['times@dataset@lc'].value
 
-    combs, mode_combs = determine_tgr_combinations(s, io_dict)
+    combs, mode_combs = determine_tgr_combinations(s, io_dict, run_dictionary)
     #print(combs)
     lines_dic = interp_line_dictionary_structure_new(combs, line_list, io_dict, mode_combs, abund_param_values)
 
@@ -1287,7 +1287,7 @@ def spec_by_phase_s(s, line_list, abund_param_values, io_dict, run_dictionary, m
 def spec_by_phase_sb(s, line_list, abund_param_values, io_dict, run_dictionary, model_path):
     times = s['times@dataset@lc'].value
 
-    combs, mode_combs = determine_tgr_combinations(s, io_dict)
+    combs, mode_combs = determine_tgr_combinations(s, io_dict, run_dictionary)
     #print(combs)
     lines_dic = interp_line_dictionary_structure_new(combs, line_list, io_dict, mode_combs, abund_param_values)
 
@@ -1399,7 +1399,7 @@ def Espinosa_Lara_2011_gd_grid(s_full, s, run_dictionary):
     return Ts
 
 
-def determine_tgr_combinations(cb, io_dict):
+def determine_tgr_combinations(cb, io_dict, run_dictionary):
     times = cb['times@dataset@lc'].value
     teffs = []
     loggs = []
@@ -1430,9 +1430,13 @@ def determine_tgr_combinations(cb, io_dict):
         else:
             for i in times:
                 phcb = cb['%09.6f'%i]
-                teff = phcb['teffs@primary'].get_value()
                 logg = phcb['loggs@primary'].get_value()
                 r = phcb['rs@primary'].get_value()
+                if io_dict['gravity_darkening'] == 'EL':
+                    teffs = Espinosa_Lara_2011_gd_grid(cb, phcb, run_dictionary)
+                else:
+                    teffs = phcb['teffs@primary'].get_value()
+                # teff = phcb['teffs@primary'].get_value()
                 teffs.extend(teff)
                 loggs.extend(logg)
                 rs.extend(r)
