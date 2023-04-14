@@ -2084,10 +2084,10 @@ def PFGS(times, abund_param_values, line_list, io_dict, obs_specs, run_dictionar
             chi_array = [[9999, run_dictionary['r_equiv_primary'], run_dictionary['r_equiv_secondary'], run_dictionary['teff_primary'], run_dictionary['teff_secondary'], run_dictionary['period'], run_dictionary['sma'], run_dictionary['q'], run_dictionary['inclination'], run_dictionary['gamma'], run_dictionary['v_macro'], run_dictionary['t0'], run_dictionary['async_primary'], run_dictionary['async_secondary'], run_dictionary['pitch_primary'], run_dictionary['pitch_secondary'], run_dictionary['yaw_primary'], run_dictionary['yaw_secondary'], -1, -1, -1, -1, run_dictionary['run_id'], 0]]
     elif io_dict['object_type'] == 'single':
         try:
-            if io_dict['distortion'] in ['rotstar', 'sphere']:
+            if io_dict['distortion'] in ['rotstar']:
                 s = run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
                 spec_by_phase_s(s, line_list, abund_param_values, io_dict, run_dictionary, model_path)
-            elif io_dict['distortion'] in ['roche']:
+            elif io_dict['distortion'] in ['roche', 'sphere']:
                 s = run_sb_phoebe_model(times, abund_param_values, io_dict, run_dictionary)
                 spec_by_phase_sb(s, line_list, abund_param_values, io_dict, run_dictionary, model_path)
             if obs_specs == None:
