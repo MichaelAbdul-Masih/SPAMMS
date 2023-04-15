@@ -613,7 +613,7 @@ def run_s_phoebe_model(times, abund_param_values, io_dict, run_dictionary):
     s['gravb_bol'].set_value(value = 1.0)
     s['irrad_frac_refl_bol'].set_value(value = 1.0)
 
-    s['distortion_method'].set_value_all(value = io_dict['distortion'])
+    s['distortion_method'].set_value(value = io_dict['distortion'])
 
     s['mass@component'].set_value(value = run_dictionary['mass'])
 
