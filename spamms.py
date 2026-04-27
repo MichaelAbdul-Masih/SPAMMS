@@ -295,10 +295,10 @@ def read_s_input_file(input_file):
 
 
     fit_params = ['teff', 'rotation_rate', 'requiv', 'inclination', 'mass', 't0', 'gamma']
-    fit_params_alt = ['teff', 'vsini', 'rotation_rate', 'v_crit_frac', 'requiv', 'r_pole', 'inclination', 'mass', 't0', 'gamma', 'v_macro', 'A_R', 'zeta_R', 'zeta_T',  'v_micro', 'metallicity', 'alpha_enhancement']
+    fit_params_alt = ['teff', 'vsini', 'rotation_rate', 'v_crit_frac', 'requiv', 'r_pole', 'inclination', 'mass', 't0', 'gamma', 'v_macro', 'sigma_R', 'sigma_T',  'v_micro', 'metallicity', 'alpha_enhancement']
     abundance_params = ['he_abundances', 'cno_abundances']
 
-    fit_param_values = {'v_macro':0.0, 'A_R':0.5, 'zeta_R':0.0, 'zeta_T':0.0, 'v_micro':10.0, 'metallicity':1.0, 'alpha_enhancement':0.0}
+    fit_param_values = {'v_macro':0.0, 'sigma_R':0.0, 'sigma_T':0.0, 'v_micro':10.0, 'metallicity':1.0, 'alpha_enhancement':0.0}
     if grid_type == 'K':
         fit_param_values['metallicity'] = 0.00
     abund_param_values = {}
@@ -331,10 +331,10 @@ def read_s_input_file(input_file):
                 # Handle the IndexError here
                 print(f"Error: {param} not found in input file")
 
-    if (max(fit_param_values['zeta_T']) > 0 or max(fit_param_values['zeta_R']) > 0) and np.any(np.array(fit_param_values['v_macro']) > 0):
-        print('vmacro and zeta_R/zeta_T cannot both be greater than 0. Defaulting to zeta_R/zeta_T and turning vmacro off')
+    if (max(fit_param_values['sigma_T']) > 0 or max(fit_param_values['sigma_R']) > 0) and np.any(np.array(fit_param_values['v_macro']) > 0):
+        print('vmacro and sigma_R/sigma_T cannot both be greater than 0. Defaulting to sigma_R/sigma_T and turning vmacro off')
         fit_param_values['v_macro'] = [-1.0]
-    elif (max(fit_param_values['zeta_T']) > 0 or max(fit_param_values['zeta_R']) > 0):
+    elif (max(fit_param_values['sigma_T']) > 0 or max(fit_param_values['sigma_R']) > 0):
         fit_param_values['v_macro'] = [-1.0]
 
     if grid_type == 'K':
@@ -1100,21 +1100,19 @@ def assign_spectra_interp_FW(mesh_vals, line, lines_dic, io_dict, abund_param_va
 
     # Macro
     if run_dictionary['v_macro'] == -1:
-        AR = run_dictionary['A_R']
-        AT = 1-AR
-        if run_dictionary['zeta_R'] > 0:
-            zeta_R = np.random.normal(0, run_dictionary['zeta_R'], size=star_profs.shape[0])
+        if run_dictionary['sigma_R'] > 0:
+            sigma_R = np.random.normal(0, run_dictionary['sigma_R'], size=star_profs.shape[0])
         else:
-            zeta_R = np.ones(star_profs.shape[0]) * run_dictionary['zeta_R']
-        v_R = AR * mesh_vals['mus'] * zeta_R
+            sigma_R = np.ones(star_profs.shape[0]) * run_dictionary['sigma_R']
+        v_R = mesh_vals['mus'] * sigma_R
 
-        if run_dictionary['zeta_T'] > 0:
-            zeta_T = np.random.normal(0, run_dictionary['zeta_T'], size=star_profs.shape[0])
+        if run_dictionary['sigma_T'] > 0:
+            sigma_T = np.random.normal(0, run_dictionary['sigma_T'], size=star_profs.shape[0])
         else:
-            zeta_T = np.ones(star_profs.shape[0]) * run_dictionary['zeta_T']
+            sigma_T = np.ones(star_profs.shape[0]) * run_dictionary['sigma_T']
         theta_T = np.random.uniform(0, 2*np.pi, size=star_profs.shape[0])
         theta_mu = np.arccos(mesh_vals['mus'])
-        v_T = AT * zeta_T * np.sin(theta_mu) * np.cos(theta_T)
+        v_T = sigma_T * np.sin(theta_mu) * np.cos(theta_T)
     else:
         v_R, v_T = 0.0, 0.0
 
